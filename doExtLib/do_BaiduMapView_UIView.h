@@ -11,7 +11,7 @@
 #import "do_BaiduMapView_UIModel.h"
 #import "doIUIModuleView.h"
 
-@interface do_BaiduMapView_UIView : UIView
+@interface do_BaiduMapView_UIView : UIView <do_BaiduMapView_IView, doIUIModuleView>
 //可根据具体实现替换UIView
 {
 	@private

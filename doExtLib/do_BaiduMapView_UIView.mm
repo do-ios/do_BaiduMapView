@@ -17,11 +17,12 @@
 #import "doServiceContainer.h"
 #import "doIModuleExtManage.h"
 
-@interface do_BaiduMapView_UIView() <do_BaiduMapView_IView, doIUIModuleView, BMKMapViewDelegate, BMKGeneralDelegate>
+BMKMapManager *_mapManager;
+BMKMapView *_mapView;
+@interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate>
 @end
 @implementation do_BaiduMapView_UIView
 {
-    BMKMapView *_mapView;
     BMKPointAnnotation *_pointAnnotation;
     NSMutableDictionary *_dictPointAnnotation;
     NSString *_annotationID;
@@ -31,14 +32,24 @@
 - (void) LoadView: (doUIModule *) _doUIModule
 {
     _model = (typeof(_model)) _doUIModule;
-    BMKMapManager *_mapManager = [[BMKMapManager alloc]init];
     NSString *_BMKMapKey = [[doServiceContainer Instance].ModuleExtManage GetThirdAppKey:@"baiduMapAppKey.plist" :@"baiduMapAppKey" ];
-    [_mapManager start:_BMKMapKey generalDelegate:self];
-    _mapView = [[BMKMapView alloc]init];
-    [_mapView setFrame:CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, self.frame.size.height)];
-    [self addSubview:_mapView];
-    [_mapView viewWillAppear];
-    _mapView.delegate = self;
+    if (!_mapManager)
+    {
+        _mapManager = [[BMKMapManager alloc]init];
+        [_mapManager start:_BMKMapKey generalDelegate:self];
+    }
+    if (!_mapView)
+    {
+        _mapView = [[BMKMapView alloc]init];
+    
+        [_mapView setFrame:CGRectMake(_model.RealX, _model.RealY, _model.RealWidth, _model.RealHeight)];
+        [self addSubview:_mapView];
+        [_mapView setZoomLevel:11];
+        _mapView.centerCoordinate = CLLocationCoordinate2DMake(39.9255, 116.3995);
+        _mapView.delegate = self;
+//    [_mapView viewWillAppear];
+    }
+    
 }
 //销毁所有的全局对象
 - (void) OnDispose
@@ -46,11 +57,13 @@
     //自定义的全局属性,view-model(UIModel)类销毁时会递归调用<子view-model(UIModel)>的该方法，将上层的引用切断。所以如果self类有非原生扩展，需主动调用view-model(UIModel)的该方法。(App || Page)-->强引用-->view-model(UIModel)-->强引用-->view
     if (_mapView)
     {
-        [_mapView viewWillDisappear];
+//        [_mapView viewWillDisappear];
         _mapView.delegate = nil;
         _mapView = nil;
+        
     }
 }
+
 //实现布局
 - (void) OnRedraw
 {
@@ -93,7 +106,7 @@
     _pointAnnotation = [[BMKPointAnnotation alloc]init];
     NSString *latitude = _dictParas[@"latitude"];
     NSString *longitude = _dictParas[@"longitude"];
-    if ([latitude isEqualToString:@""] || [longitude isEqualToString:@""])
+    if (latitude == nil || [latitude isEqualToString:@""] || longitude == nil || [longitude isEqualToString:@""])
     {
         [_invokeResult SetResultBoolean:NO];
     }
