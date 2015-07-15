@@ -16,15 +16,20 @@
 #import "doJsonHelper.h"
 #import "doServiceContainer.h"
 #import "doIModuleExtManage.h"
+#import "MyAnimatedAnnotationView.h"
+#import "doIOHelper.h"
+#import "doIPage.h"
 
-BMKMapManager *_mapManager;
-BMKMapView *_mapView;
 @interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate>
 @end
 @implementation do_BaiduMapView_UIView
 {
+    BMKMapManager *_mapManager;
+    BMKMapView *_mapView;
+    
     BMKPointAnnotation *_pointAnnotation;
-    NSMutableDictionary *_dictPointAnnotation;
+    NSMutableDictionary *_dictAnnotation;
+    NSMutableDictionary *_dictImags;
     NSString *_annotationID;
 }
 #pragma mark - doIUIModuleView协议方法（必须）
@@ -41,16 +46,18 @@ BMKMapView *_mapView;
     if (!_mapView)
     {
         _mapView = [[BMKMapView alloc]init];
-    
-        [_mapView setFrame:CGRectMake(_model.RealX, _model.RealY, _model.RealWidth, _model.RealHeight)];
-        [self addSubview:_mapView];
-        [_mapView setZoomLevel:11];
-        _mapView.centerCoordinate = CLLocationCoordinate2DMake(39.9255, 116.3995);
-        _mapView.delegate = self;
-//    [_mapView viewWillAppear];
     }
     
+    [_mapView setFrame:CGRectMake(_model.RealX, _model.RealY, _model.RealWidth, _model.RealHeight)];
+    [self addSubview:_mapView];
+    [_mapView setZoomLevel:11];
+    _mapView.centerCoordinate = CLLocationCoordinate2DMake(39.9255, 116.3995);
+    [_mapView viewWillAppear];
+    _mapView.delegate = self;
+     _dictAnnotation = [[NSMutableDictionary alloc]init];
+    _dictImags = [[NSMutableDictionary alloc]init];
 }
+
 //销毁所有的全局对象
 - (void) OnDispose
 {
@@ -103,33 +110,41 @@ BMKMapView *_mapView;
     
     doInvokeResult *_invokeResult = [parms objectAtIndex:2];
     //_invokeResult设置返回值
-    _pointAnnotation = [[BMKPointAnnotation alloc]init];
-    NSString *latitude = _dictParas[@"latitude"];
-    NSString *longitude = _dictParas[@"longitude"];
-    if (latitude == nil || [latitude isEqualToString:@""] || longitude == nil || [longitude isEqualToString:@""])
-    {
-        [_invokeResult SetResultBoolean:NO];
+    
+    for (id _annotation in _dictParas[@"data"]) {
+//        BMKAnnotationView *_annotationView = [[BMKAnnotationView alloc]init];
+        _pointAnnotation = [[BMKPointAnnotation alloc]init];
+        NSString *latitude = _annotation[@"latitude"];
+        NSString *longitude = _annotation[@"longitude"];
+        NSString *imagPath = _annotation[@"url"];
+        NSString *info = _annotation[@"info"];
+        if (latitude == nil || [latitude isEqualToString:@""] || longitude == nil || [longitude isEqualToString:@""])
+        {
+            [_invokeResult SetResultBoolean:NO];
+            return;
+        }
+        else
+        {
+            CLLocationCoordinate2D coor;
+            coor.latitude = [latitude floatValue];
+            coor.longitude = [longitude floatValue];
+            [_pointAnnotation setTitle:info];
+            [_pointAnnotation setCoordinate:coor];
+            _annotationID = _annotation[@"id"];
+           
+            [_dictAnnotation setValue:_pointAnnotation forKey:_annotationID];
+            [_dictImags setValue:imagPath forKey:_annotationID];
+            [_mapView addAnnotation:_pointAnnotation];
+        }
     }
-    else
-    {
-        CLLocationCoordinate2D coor;
-        coor.latitude = [latitude floatValue];
-        coor.longitude = [longitude floatValue];
-        _pointAnnotation.coordinate = coor;
-        _annotationID = _dictParas[@"id"];
-        _pointAnnotation.title = _dictParas[@"url"];
-        _pointAnnotation.subtitle = _dictParas[@"info"];
-        [_mapView addAnnotation:_pointAnnotation];
-        [_dictPointAnnotation setValue:_pointAnnotation forKey:_annotationID];
-        [_invokeResult SetResultBoolean:YES];
-    }
+    [_invokeResult SetResultBoolean:YES];
 }
 - (void)removeAll:(NSArray *)parms
 {
-    for (id key in _dictPointAnnotation.allKeys) {
-        [_mapView removeAnnotation:_dictPointAnnotation[key]];
+    for (id key in _dictAnnotation.allKeys) {
+        [_mapView removeAnnotation:_dictAnnotation[key]];
     }
-    [_dictPointAnnotation removeAllObjects];
+    [_dictAnnotation removeAllObjects];
 }
 - (void)removeMarker:(NSArray *)parms
 {
@@ -139,11 +154,11 @@ BMKMapView *_mapView;
     
     doInvokeResult *_invokeResult = [parms objectAtIndex:2];
     //_invokeResult设置返回值
-    NSString *_pointAnnotationID = _dictParas[@"id"];
-    if ([_dictPointAnnotation objectForKey:_pointAnnotationID] != nil)
+    NSString *_pointAnnotationID = _dictParas[@"ids"][0];
+    if ([_dictAnnotation objectForKey:_pointAnnotationID] != nil)
     {
-        [_mapView removeAnnotation:_dictPointAnnotation[_pointAnnotationID]];
-        [_dictPointAnnotation removeObjectForKey:_pointAnnotationID];
+        [_mapView removeAnnotation:_dictAnnotation[_pointAnnotationID]];
+        [_dictAnnotation removeObjectForKey:_pointAnnotationID];
         [_invokeResult SetResultBoolean:YES];
     }
     else
@@ -175,24 +190,30 @@ BMKMapView *_mapView;
 #pragma mark - BMKMapViewDelegate
 -(BMKAnnotationView *)mapView:(BMKMapView *)mapView viewForAnnotation:(id<BMKAnnotation>)annotation
 {
-    BMKPinAnnotationView *_annotationView;
-    if (annotation == _pointAnnotation) {
-        NSString *AnnotationViewID = @"renameMark";
-        _annotationView = (BMKPinAnnotationView *)[mapView dequeueReusableAnnotationViewWithIdentifier:AnnotationViewID];
-        if (_annotationView == nil) {
-            _annotationView = [[BMKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:AnnotationViewID];
-            // 设置颜色
-            _annotationView.pinColor = BMKPinAnnotationColorPurple;
-            // 从天上掉下效果
-            _annotationView.animatesDrop = YES;
-            // 设置可拖拽
-            _annotationView.draggable = YES;
+    NSString *AnnotationViewID = @"AnimatedAnnotation";
+    MyAnimatedAnnotationView *_annotationView = nil;
+    if (_annotationView == nil) {
+        _annotationView = [[MyAnimatedAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:AnnotationViewID];
+    }
+    NSString *_pathID;
+    for (NSString *_anno in _dictAnnotation.allKeys) {
+        if (annotation == _dictAnnotation[_anno])
+        {
+            _pathID = _anno;
+            break;
         }
     }
+
+    NSString * imgPath = [doIOHelper GetLocalFileFullPath:_model.CurrentPage.CurrentApp :_dictImags[_pathID]];
+    UIImage * image = [UIImage imageWithContentsOfFile:imgPath];
+    NSMutableArray *images = [NSMutableArray array];
+    [images addObject:image];
+
+    _annotationView.annotationImages = images;
+    _annotationView.draggable = YES;
     return _annotationView;
 }
 
-// 当点击annotation view弹出的泡泡时，调用此接口
 - (void)mapView:(BMKMapView *)mapView annotationViewForBubble:(BMKAnnotationView *)view;
 {
     doInvokeResult* _invokeResult = [[doInvokeResult alloc]init:_model.UniqueKey];

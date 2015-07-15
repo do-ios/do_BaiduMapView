@@ -17,6 +17,7 @@
 		A44BC6A21AEE008D001580AA /* doScriptEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = A44BC69C1AEE008D001580AA /* doScriptEngine.m */; };
 		A44BC6A31AEE008D001580AA /* doService.m in Sources */ = {isa = PBXBuildFile; fileRef = A44BC69E1AEE008D001580AA /* doService.m */; };
 		A4A1A01D1AF0F83700D835A5 /* do_Test.json in Resources */ = {isa = PBXBuildFile; fileRef = A4A1A01C1AF0F82B00D835A5 /* do_Test.json */; };
+		A7D69EE11B55FEB800BEEBA8 /* MyAnimatedAnnotationView.m in Sources */ = {isa = PBXBuildFile; fileRef = A7D69EE01B55FEB800BEEBA8 /* MyAnimatedAnnotationView.m */; };
 		A7F8D3771B4E18EB00C05337 /* do_BaiduMapView_UIModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A7F8D3741B4E18EB00C05337 /* do_BaiduMapView_UIModel.m */; };
 		A7F8D3781B4E18EB00C05337 /* do_BaiduMapView_UIView.mm in Sources */ = {isa = PBXBuildFile; fileRef = A7F8D3761B4E18EB00C05337 /* do_BaiduMapView_UIView.mm */; };
 		A7F8D37B1B4E193400C05337 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CCFAEAA21B00ED5800AED8D5 /* QuartzCore.framework */; };
@@ -99,6 +100,8 @@
 		A44BC69E1AEE008D001580AA /* doService.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = doService.m; sourceTree = "<group>"; };
 		A44BC7B21AEE19CC001580AA /* libdoBaiduMapView.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libdoBaiduMapView.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4A1A01C1AF0F82B00D835A5 /* do_Test.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = do_Test.json; sourceTree = "<group>"; };
+		A7D69EDF1B55FEB800BEEBA8 /* MyAnimatedAnnotationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MyAnimatedAnnotationView.h; sourceTree = "<group>"; };
+		A7D69EE01B55FEB800BEEBA8 /* MyAnimatedAnnotationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyAnimatedAnnotationView.m; sourceTree = "<group>"; };
 		A7F8D3711B4E18EB00C05337 /* baiduMapAppKey.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = baiduMapAppKey.plist; sourceTree = "<group>"; };
 		A7F8D3721B4E18EB00C05337 /* do_BaiduMapView_IView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = do_BaiduMapView_IView.h; sourceTree = "<group>"; };
 		A7F8D3731B4E18EB00C05337 /* do_BaiduMapView_UIModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = do_BaiduMapView_UIModel.h; sourceTree = "<group>"; };
@@ -381,6 +384,8 @@
 		A44BC7B31AEE19CD001580AA /* doExtLib */ = {
 			isa = PBXGroup;
 			children = (
+				A7D69EDF1B55FEB800BEEBA8 /* MyAnimatedAnnotationView.h */,
+				A7D69EE01B55FEB800BEEBA8 /* MyAnimatedAnnotationView.m */,
 				A7F8D3711B4E18EB00C05337 /* baiduMapAppKey.plist */,
 				A7F8D3721B4E18EB00C05337 /* do_BaiduMapView_IView.h */,
 				A7F8D3731B4E18EB00C05337 /* do_BaiduMapView_UIModel.h */,
@@ -541,6 +546,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A7F8D3771B4E18EB00C05337 /* do_BaiduMapView_UIModel.m in Sources */,
+				A7D69EE11B55FEB800BEEBA8 /* MyAnimatedAnnotationView.m in Sources */,
 				A7F8D3781B4E18EB00C05337 /* do_BaiduMapView_UIView.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
