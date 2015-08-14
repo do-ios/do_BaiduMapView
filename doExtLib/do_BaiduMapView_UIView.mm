@@ -20,13 +20,14 @@
 #import "doIOHelper.h"
 #import "doIPage.h"
 
+//BMKMapManager *_mapManager;
+//BMKMapView *_mapView;
 @interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate>
 @end
 @implementation do_BaiduMapView_UIView
 {
     BMKMapManager *_mapManager;
     BMKMapView *_mapView;
-    
     BMKPointAnnotation *_pointAnnotation;
     NSMutableDictionary *_dictAnnotation;
     NSMutableDictionary *_dictImags;
@@ -37,17 +38,18 @@
 - (void) LoadView: (doUIModule *) _doUIModule
 {
     _model = (typeof(_model)) _doUIModule;
-    NSString *_BMKMapKey = [[doServiceContainer Instance].ModuleExtManage GetThirdAppKey:@"baiduMapAppKey.plist" :@"baiduMapAppKey" ];
+    NSString *_BMKMapKey = [[doServiceContainer Instance].ModuleExtManage GetThirdAppKey:@"baiduMapAppKey.plist" :@"baiduMapViewAppKey" ];
     if (!_mapManager)
     {
-        _mapManager = [[BMKMapManager alloc]init];
+       _mapManager = [[BMKMapManager alloc]init];
         [_mapManager start:_BMKMapKey generalDelegate:self];
     }
     if (!_mapView)
     {
+       
         _mapView = [[BMKMapView alloc]init];
     }
-    
+
     [_mapView setFrame:CGRectMake(_model.RealX, _model.RealY, _model.RealWidth, _model.RealHeight)];
     [self addSubview:_mapView];
     [_mapView setZoomLevel:11];
@@ -64,10 +66,14 @@
     //自定义的全局属性,view-model(UIModel)类销毁时会递归调用<子view-model(UIModel)>的该方法，将上层的引用切断。所以如果self类有非原生扩展，需主动调用view-model(UIModel)的该方法。(App || Page)-->强引用-->view-model(UIModel)-->强引用-->view
     if (_mapView)
     {
-//        [_mapView viewWillDisappear];
+        [_mapView viewWillDisappear];
         _mapView.delegate = nil;
         _mapView = nil;
-        
+        [_mapView removeFromSuperview];
+    }
+    if(_mapManager)
+    {
+        [_mapManager stop];
     }
 }
 
@@ -112,7 +118,6 @@
     //_invokeResult设置返回值
     
     for (id _annotation in _dictParas[@"data"]) {
-//        BMKAnnotationView *_annotationView = [[BMKAnnotationView alloc]init];
         _pointAnnotation = [[BMKPointAnnotation alloc]init];
         NSString *latitude = _annotation[@"latitude"];
         NSString *longitude = _annotation[@"longitude"];
