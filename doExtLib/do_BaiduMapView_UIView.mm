@@ -12,23 +12,20 @@
 #import "doUIModuleHelper.h"
 #import "doScriptEngineHelper.h"
 #import "doIScriptEngine.h"
-#import "BaiduMapAPI/BMapKit.h"
 #import "doJsonHelper.h"
 #import "doServiceContainer.h"
 #import "doIModuleExtManage.h"
 #import "MyAnimatedAnnotationView.h"
 #import "doIOHelper.h"
 #import "doIPage.h"
+#import "BMapKit.h"
 
-//BMKMapManager *_mapManager;
-//BMKMapView *_mapView;
+BMKMapManager *_mapManager;
+BMKMapView *_mapView;
 @interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate>
 @end
 @implementation do_BaiduMapView_UIView
 {
-    BMKMapManager *_mapManager;
-    BMKMapView *_mapView;
-    BMKPointAnnotation *_pointAnnotation;
     NSMutableDictionary *_dictAnnotation;
     NSMutableDictionary *_dictImags;
     NSString *_annotationID;
@@ -42,11 +39,11 @@
     if (!_mapManager)
     {
        _mapManager = [[BMKMapManager alloc]init];
-        [_mapManager start:_BMKMapKey generalDelegate:self];
     }
+    
+    [_mapManager start:_BMKMapKey generalDelegate:self];
     if (!_mapView)
     {
-       
         _mapView = [[BMKMapView alloc]init];
     }
 
@@ -54,7 +51,6 @@
     [self addSubview:_mapView];
     [_mapView setZoomLevel:11];
     _mapView.centerCoordinate = CLLocationCoordinate2DMake(39.9255, 116.3995);
-    [_mapView viewWillAppear];
     _mapView.delegate = self;
      _dictAnnotation = [[NSMutableDictionary alloc]init];
     _dictImags = [[NSMutableDictionary alloc]init];
@@ -64,13 +60,10 @@
 - (void) OnDispose
 {
     //自定义的全局属性,view-model(UIModel)类销毁时会递归调用<子view-model(UIModel)>的该方法，将上层的引用切断。所以如果self类有非原生扩展，需主动调用view-model(UIModel)的该方法。(App || Page)-->强引用-->view-model(UIModel)-->强引用-->view
-    if (_mapView)
-    {
-        [_mapView viewWillDisappear];
-        _mapView.delegate = nil;
-        _mapView = nil;
-        [_mapView removeFromSuperview];
-    }
+
+    [self removeAll:nil];
+    _dictAnnotation = nil;
+    _dictImags = nil;
     if(_mapManager)
     {
         [_mapManager stop];
@@ -116,9 +109,8 @@
     
     doInvokeResult *_invokeResult = [parms objectAtIndex:2];
     //_invokeResult设置返回值
-    
     for (id _annotation in _dictParas[@"data"]) {
-        _pointAnnotation = [[BMKPointAnnotation alloc]init];
+        BMKPointAnnotation *_pointAnnotation = [[BMKPointAnnotation alloc]init];
         NSString *latitude = _annotation[@"latitude"];
         NSString *longitude = _annotation[@"longitude"];
         NSString *imagPath = _annotation[@"url"];
@@ -136,7 +128,12 @@
             [_pointAnnotation setTitle:info];
             [_pointAnnotation setCoordinate:coor];
             _annotationID = _annotation[@"id"];
-           
+            for (id key in _dictAnnotation.allKeys) {
+                if ([key isEqualToString:_annotationID]) {
+                    [_mapView removeAnnotation:_dictAnnotation[key]];
+                    break;
+                }
+            }
             [_dictAnnotation setValue:_pointAnnotation forKey:_annotationID];
             [_dictImags setValue:imagPath forKey:_annotationID];
             [_mapView addAnnotation:_pointAnnotation];
@@ -150,7 +147,9 @@
         [_mapView removeAnnotation:_dictAnnotation[key]];
     }
     [_dictAnnotation removeAllObjects];
+    [_dictImags removeAllObjects];
 }
+
 - (void)removeMarker:(NSArray *)parms
 {
     NSDictionary *_dictParas = [parms objectAtIndex:0];
@@ -164,6 +163,7 @@
     {
         [_mapView removeAnnotation:_dictAnnotation[_pointAnnotationID]];
         [_dictAnnotation removeObjectForKey:_pointAnnotationID];
+        [_dictImags removeObjectForKey:_pointAnnotationID];
         [_invokeResult SetResultBoolean:YES];
     }
     else
@@ -222,7 +222,7 @@
 - (void)mapView:(BMKMapView *)mapView annotationViewForBubble:(BMKAnnotationView *)view;
 {
     doInvokeResult* _invokeResult = [[doInvokeResult alloc]init:_model.UniqueKey];
-    [_invokeResult setValue:_annotationID forKey:@"pointAnnotationID"];
+    [_invokeResult setValue:_annotationID forKey:@"AnimatedAnnotation"];
     [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
 }
 
