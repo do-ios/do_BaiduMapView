@@ -7,7 +7,6 @@
 //
 
 #import "BMKAnnotationView.h"
-
 @interface MyAnimatedAnnotationView : BMKAnnotationView
 
 @property (nonatomic, strong) NSMutableArray *annotationImages;

@@ -23,6 +23,7 @@
 BMKMapManager *_mapManager;
 BMKMapView *_mapView;
 @interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate>
+//@property (nonatomic,weak) id<doBaiduMapViewDelegate> delegate;
 @end
 @implementation do_BaiduMapView_UIView
 {
@@ -221,8 +222,8 @@ BMKMapView *_mapView;
 
 - (void)mapView:(BMKMapView *)mapView annotationViewForBubble:(BMKAnnotationView *)view;
 {
-    doInvokeResult* _invokeResult = [[doInvokeResult alloc]init:_model.UniqueKey];
-    [_invokeResult setValue:_annotationID forKey:@"AnimatedAnnotation"];
+    doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
+    [_invokeResult SetResultText:_dictAnnotation[@"AnimatedAnnotation"]];
     [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
 }
 
