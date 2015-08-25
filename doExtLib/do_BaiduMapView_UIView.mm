@@ -47,10 +47,8 @@ BMKMapView *_mapView;
     {
         _mapView = [[BMKMapView alloc]init];
     }
-
     [_mapView setFrame:CGRectMake(_model.RealX, _model.RealY, _model.RealWidth, _model.RealHeight)];
     [self addSubview:_mapView];
-    [_mapView setZoomLevel:11];
     _mapView.centerCoordinate = CLLocationCoordinate2DMake(39.9255, 116.3995);
     _mapView.delegate = self;
      _dictAnnotation = [[NSMutableDictionary alloc]init];
@@ -78,6 +76,7 @@ BMKMapView *_mapView;
     
     //重新调整视图的x,y,w,h
     [doUIModuleHelper OnRedraw:_model];
+    [_mapView setFrame:CGRectMake(_model.RealX, _model.RealY, _model.RealWidth, _model.RealHeight)];
 }
 
 #pragma mark - TYPEID_IView协议方法（必须）
