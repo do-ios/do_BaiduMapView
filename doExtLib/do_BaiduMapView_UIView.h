@@ -17,5 +17,5 @@
 	@private
 		__weak do_BaiduMapView_UIModel *_model;
 }
-
+//@property (assign, nonatomic) BOOL isLoop;
 @end

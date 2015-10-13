@@ -20,5 +20,6 @@
 - (void)removeMarker:(NSArray *)parms;
 - (void)setCenter:(NSArray *)parms;
 
-
+- (BOOL)start:(NSArray *)parms;
+- (BOOL)stop:(NSArray *)parms;
 @end
