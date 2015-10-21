@@ -407,7 +407,7 @@ BMKGeoCodeSearch *_geocodesearch;
     }
 //    if (!self.isLoop)
 //    {
-//        [_locService stopUserLocationService];
+        [_locService stopUserLocationService];
 //    }
 }
 
