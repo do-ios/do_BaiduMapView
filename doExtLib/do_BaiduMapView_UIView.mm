@@ -48,8 +48,12 @@ NSString *_modelString;
     {
         _mapManager = [[BMKMapManager alloc]init];
     }
-    
-    [_mapManager start:_BMKMapKey generalDelegate:self];
+    UIApplication *app = [UIApplication sharedApplication];
+    [app setValue:@"start" forKey:@"BaiduMapView"];
+    NSString *isStart = [app valueForKey:@"BaiduLocation"];
+    if (![isStart isEqualToString:@"start"]) {
+        [_mapManager start:_BMKMapKey generalDelegate:self];
+    }
     if (!_mapView)
     {
         _mapView = [[BMKMapView alloc]init];
