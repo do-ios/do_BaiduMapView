@@ -4,15 +4,15 @@
   "Type": "UI",
   "Name": "百度地图",
   "Version": "Internal",
-  "Description": "百度地图基本功能",
-  "Icon": "",
+  "Description": "集成百度地图，实现基本的地图功能，包括设置中心点，添加标记等；集成百度定位功能",
+  "Icon": "https://deviceone.blob.core.chinacloudapi.cn/store/R/20150723/909280f1-f0db-479f-832f-2965e24c2bb5.png",
   "IOS": {
-    "Support": 0,
-    "MinVersion": ""
+    "Support": 1,
+    "MinVersion": "7.0"
   },
   "Android": {
     "Support": 1,
-    "MinVersion": "14"
+    "MinVersion": "4.0"
   },
   "Windows": {
     "Support": 0,
@@ -30,18 +30,24 @@
     {
       "ID": "zoomLevel",
       "Name": "地图缩放等级",
-      "Type": "String",
+      "Type": "Number",
       "DefaultValue": "10",
       "EditType": "1",
       "Group": "",
-      "Description": "地图缩放等级，可以设置级别为 3-18 ,对应地图比例尺50m - 2000公里，具体对应关系可以参考百度地图开发文档",
+      "Description": "地图缩放等级，可以设置级别为 3-18 ,对应地图比例尺20m - 2000公里，具体对应关系可以参考百度地图开发文档",
       "Design": {
-        "Type": "Text",
+        "Type": "UInteger",
         "Data": []
       }
     }
   ],
   "Events": [
+    {
+      "ID": "result",
+      "Description": "接收到定位/更新定位时候触发",
+      "ReturnType": "Node",
+      "ReturnDesc": "{latitude:'纬度​'，longitude:'经度', address:'北京市海淀区'}"
+    },
     {
       "ID": "touchMarker",
       "Description": "点击标记时触发",
@@ -63,7 +69,7 @@
           "Type": "Node",
           "Required": 1,
           "DefaultValue": "",
-          "Description": "[{\\\"id\\\":\\\"标记ID,用户自定义标记唯一ID\\\",\\\"latitude\\\":\\\"纬度\\\",\\\"longitude\\\":\\\"经度\\\",\\\"url\\\":\\\"缩略图地址\\\",\\\"info\\\":\\\"描述信息\\"
+          "Description": "[{\"id\":\"标记ID,用户自定义标记唯一ID\",\"latitude\":\"纬度\",\"longitude\":\"经度\",\"url\":\"缩略图地址\",\"info\":\"描述信息\"},...]"
         }
       ]
     },
@@ -79,8 +85,8 @@
       "ID": "removeMarker",
       "Name": "移除一组指定标记",
       "Description": "移除一组指定标记",
-      "ReturnType": "Bool",
-      "ReturnDesc": "true 成功 false 失败",
+      "ReturnType": "",
+      "ReturnDesc": "",
       "Paras": [
         {
           "ID": "ids",
@@ -116,6 +122,39 @@
           "Description": "设置地图中心点经度，默认是北京天安门坐标经度"
         }
       ]
+    },
+    {
+      "ID": "start",
+      "Name": "开启定位",
+      "Description": "开启定位",
+      "ReturnType": "",
+      "ReturnDesc": "",
+      "Paras": [
+        {
+          "ID": "model",
+          "Name": "定位模式",
+          "Type": "String",
+          "Required": 0,
+          "DefaultValue": "high",
+          "Description": "high:高精度定位模式；low：低精度；middle: 中精度"
+        },
+        {
+          "ID": "isLoop",
+          "Name": "是否循环不停的获取",
+          "Type": "Bool",
+          "Required": 0,
+          "DefaultValue": "false",
+          "Description": "为false时只获取一次位置，触发一次result事件。 当值为true时,程序会不断获取新的位置（android是根据时间间隔，iOS是根据距离间隔），触发result事件"
+        }
+      ]
+    },
+    {
+      "ID": "stop",
+      "Name": "停止定位",
+      "Description": "停止定位",
+      "ReturnType": "",
+      "ReturnDesc": "",
+      "Paras": []
     }
   ],
   "asyncMethodes": []

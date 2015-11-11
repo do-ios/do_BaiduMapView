@@ -6,7 +6,7 @@
 //  Copyright (c) 2014年 Baidu. All rights reserved.
 //
 
-#import "BMKAnnotationView.h"
+#import <BaiduMapAPI_Map/BMKAnnotationView.h>
 @interface MyAnimatedAnnotationView : BMKAnnotationView
 
 @property (nonatomic, strong) NSMutableArray *annotationImages;

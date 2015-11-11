@@ -19,7 +19,7 @@
 {
     [super OnInit];    
     //属性声明
-	[self RegistProperty:[[doProperty alloc]init:@"zoomLevel" :String :@"10" :NO]];
+	[self RegistProperty:[[doProperty alloc]init:@"zoomLevel" :Number :@"10" :NO]];
 
 }
 

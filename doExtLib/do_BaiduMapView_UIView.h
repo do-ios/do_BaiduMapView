@@ -11,11 +11,11 @@
 #import "do_BaiduMapView_UIModel.h"
 #import "doIUIModuleView.h"
 
-@interface do_BaiduMapView_UIView : UIView <do_BaiduMapView_IView, doIUIModuleView>
+@interface do_BaiduMapView_UIView : UIView<do_BaiduMapView_IView, doIUIModuleView>
 //可根据具体实现替换UIView
 {
 	@private
 		__weak do_BaiduMapView_UIModel *_model;
 }
-//@property (assign, nonatomic) BOOL isLoop;
+
 @end
