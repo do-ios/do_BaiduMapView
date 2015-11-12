@@ -22,6 +22,7 @@
 #import <BaiduMapAPI_Map/BMKMapView.h>
 #import <BaiduMapAPI_Base/BMKGeneralDelegate.h>
 #import <BaiduMapAPI_Map/BMKPointAnnotation.h>
+#import <objc/runtime.h>
 
 BMKMapManager *_mapManager;
 BMKMapView *_mapView;
@@ -48,9 +49,8 @@ NSString *_modelString;
     {
         _mapManager = [[BMKMapManager alloc]init];
     }
-    UIApplication *app = [UIApplication sharedApplication];
-    [app setValue:@"start" forKey:@"BaiduMapView"];
-    NSString *isStart = [app valueForKey:@"BaiduLocation"];
+    NSString *isStart =  objc_getAssociatedObject([UIApplication sharedApplication], "BaiduLocation");
+    objc_setAssociatedObject([UIApplication sharedApplication], "BaiduMapView", @"start", OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if (![isStart isEqualToString:@"start"]) {
         [_mapManager start:_BMKMapKey generalDelegate:self];
     }
