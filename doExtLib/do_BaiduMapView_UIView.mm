@@ -107,7 +107,15 @@ NSString *_modelString;
     {
         newValue = [(doUIModule *)_model GetProperty:@"zoomLevel"].DefaultValue;
     }
-    _mapView.zoomLevel = [newValue floatValue];
+    float level = [newValue floatValue];
+    if (level<3) {
+        level = 3;
+    }
+    else if(level > 18)
+    {
+        level = 18;
+    }
+    _mapView.zoomLevel = level;
 }
 
 #pragma mark -
