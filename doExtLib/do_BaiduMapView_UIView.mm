@@ -44,21 +44,22 @@ NSString *_modelString;
 - (void) LoadView: (doUIModule *) _doUIModule
 {
     _model = (typeof(_model)) _doUIModule;
-    NSString *_BMKMapKey = [[doServiceContainer Instance].ModuleExtManage GetThirdAppKey:@"baiduMapAppKey.plist" :@"baiduMapViewAppKey" ];
-    if (!_mapManager)
-    {
-        _mapManager = [[BMKMapManager alloc]init];
-    }
+    NSString *_BMKMapKey = [[doServiceContainer Instance].ModuleExtManage GetThirdAppKey:@"baiduMapAppKey.plist" :@"baiduMapAppKey" ];
+    
     NSString *isStart =  objc_getAssociatedObject([UIApplication sharedApplication], "BaiduLocation");
     objc_setAssociatedObject([UIApplication sharedApplication], "BaiduMapView", @"start", OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     if (![isStart isEqualToString:@"start"]) {
-        [_mapManager start:_BMKMapKey generalDelegate:self];
+        if (!_mapManager)
+        {
+            _mapManager = [[BMKMapManager alloc]init];
+        }
+        [_mapManager start:_BMKMapKey generalDelegate:nil];
     }
     if (!_mapView)
     {
         _mapView = [[BMKMapView alloc]init];
     }
-    [_mapView setFrame:CGRectMake(_model.RealX, _model.RealY, _model.RealWidth, _model.RealHeight)];
+    [_mapView setFrame:CGRectMake(0 ,0 ,_model.RealWidth, _model.RealHeight)];
     [self addSubview:_mapView];
     _mapView.centerCoordinate = CLLocationCoordinate2DMake(39.9255, 116.3995);
     _mapView.delegate = self;
@@ -87,7 +88,7 @@ NSString *_modelString;
     
     //重新调整视图的x,y,w,h
     [doUIModuleHelper OnRedraw:_model];
-    [_mapView setFrame:CGRectMake(_model.RealX, _model.RealY, _model.RealWidth, _model.RealHeight)];
+    [_mapView setFrame:CGRectMake(0, 0, _model.RealWidth, _model.RealHeight)];
 }
 
 #pragma mark - TYPEID_IView协议方法（必须）
