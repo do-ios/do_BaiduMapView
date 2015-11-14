@@ -62,6 +62,7 @@ NSString *_modelString;
     [_mapView setFrame:CGRectMake(0 ,0 ,_model.RealWidth, _model.RealHeight)];
     [self addSubview:_mapView];
     _mapView.centerCoordinate = CLLocationCoordinate2DMake(39.9255, 116.3995);
+    _mapView.showMapScaleBar = YES;
     _mapView.delegate = self;
     _dictAnnotation = [[NSMutableDictionary alloc]init];
     _dictImags = [[NSMutableDictionary alloc]init];
