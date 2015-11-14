@@ -231,6 +231,7 @@ NSString *_modelString;
     
     NSString * imgPath = [doIOHelper GetLocalFileFullPath:_model.CurrentPage.CurrentApp :_dictImags[_pathID]];
     UIImage * image = [UIImage imageWithContentsOfFile:imgPath];
+    image = [doUIModuleHelper imageWithImageSimple:image scaledToSize:CGSizeMake(image.size.width * _model.XZoom, image.size.height * _model.YZoom)];
     NSMutableArray *images = [NSMutableArray array];
     [images addObject:image];
     
