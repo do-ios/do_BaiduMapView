@@ -22,6 +22,7 @@
 #import <BaiduMapAPI_Map/BMKMapView.h>
 #import <BaiduMapAPI_Base/BMKGeneralDelegate.h>
 #import <BaiduMapAPI_Map/BMKPointAnnotation.h>
+#import <BaiduMapAPI_Utils/BMKUtilsComponent.h>
 #import <objc/runtime.h>
 
 BMKMapManager *_mapManager;
@@ -101,6 +102,22 @@ NSString *_modelString;
  获取属性最初的默认值
  NSString *属性名 = [(doUIModule *)_model GetProperty:@"属性名"].DefaultValue;
  */
+
+- (void)change_mapType:(NSString *)newValue
+{
+    //自己的代码实现
+    if (newValue == nil || [newValue isEqualToString:@""])
+    {
+        newValue = [(doUIModule *)_model GetProperty:@"mapType"].DefaultValue;
+    }
+    if ([newValue isEqualToString:@"standard"]) {
+        [_mapView setMapType:BMKMapTypeStandard];
+    }
+    else
+    {
+        [_mapView setMapType:BMKMapTypeSatellite];
+    }
+}
 - (void)change_zoomLevel:(NSString *)newValue
 {
     //自己的代码实现
@@ -121,6 +138,24 @@ NSString *_modelString;
 
 #pragma mark -
 #pragma mark - 同步异步方法的实现
+- (void)getDistance:(NSArray *)parms
+{
+    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    //参数字典_dictParas
+//    id<doIScriptEngine> _scritEngine = [parms objectAtIndex:1];
+    //自己的代码实现
+    NSString *startPoint = [doJsonHelper GetOneText:_dictParas :@"startPoint" :@""];
+    NSString *endPoint = [doJsonHelper GetOneText:_dictParas :@"endPoint" :@""];
+    NSArray *starts = [startPoint componentsSeparatedByString:@","];
+    NSArray *ends = [endPoint componentsSeparatedByString:@","];
+    BMKMapPoint point1 = BMKMapPointForCoordinate(CLLocationCoordinate2DMake([[starts firstObject] floatValue],[[starts lastObject]floatValue]));
+    BMKMapPoint point2 = BMKMapPointForCoordinate(CLLocationCoordinate2DMake([[ends firstObject] floatValue],[[ends lastObject]floatValue]));
+    CLLocationDistance distance = BMKMetersBetweenMapPoints(point1,point2);
+    doInvokeResult *_invokeResult = [parms objectAtIndex:2];
+    [_invokeResult SetResultFloat:distance];
+    //_invokeResult设置返回值
+}
+
 //同步
 - (void)addMarkers:(NSArray *)parms
 {
