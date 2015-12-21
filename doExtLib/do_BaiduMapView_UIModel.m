@@ -19,6 +19,7 @@
 {
     [super OnInit];    
     //属性声明
+    [self RegistProperty:[[doProperty alloc]init:@"mapType" :String :@"standard" :NO]];
 	[self RegistProperty:[[doProperty alloc]init:@"zoomLevel" :Number :@"10" :NO]];
 
 }
