@@ -270,16 +270,23 @@ NSString *_modelString;
     image = [doUIModuleHelper imageWithImageSimple:image scaledToSize:CGSizeMake(image.size.width * _model.XZoom, image.size.height * _model.YZoom)];
     NSMutableArray *images = [NSMutableArray array];
     [images addObject:image];
-    
+    _annotationView.viewID = _pathID;
     _annotationView.annotationImages = images;
     _annotationView.draggable = YES;
     return _annotationView;
 }
-
+- (void)mapView:(BMKMapView *)mapView didSelectAnnotationView:(BMKAnnotationView *)view
+{
+    NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
+    doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
+    [_invokeResult SetResultText:viewID];
+    [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
+}
 - (void)mapView:(BMKMapView *)mapView annotationViewForBubble:(BMKAnnotationView *)view;
 {
+    NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
     doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
-    [_invokeResult SetResultText:_dictAnnotation[@"AnimatedAnnotation"]];
+    [_invokeResult SetResultText:viewID];
     [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
 }
 
