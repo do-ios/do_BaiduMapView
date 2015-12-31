@@ -34,7 +34,7 @@
                    "DefaultValue": "standard",
                    "EditType": "1",
                    "Group": "",
-                   "Description": "地图类型，支持标准地图和卫星地图",
+                   "Description": "地图类型，支持标准地图standard和卫星地图satellite",
                    "Design": {
                    "Type": "List",
                    "Data": [
@@ -66,7 +66,7 @@
     "Events": [
                {
                "ID": "touchMarker",
-               "Description": "点击标记时触发",
+               "Description": "点击标记时触发，iOS平台只有第一次点击mark会触发该事件，之后需要点击弹出的缩略图触发",
                "ReturnType": "String",
                "ReturnDesc": "标记ID"
                }
@@ -165,5 +165,55 @@
                                ]
                      }
                      ],
-    "asyncMethodes": []
+    "asyncMethodes": [
+                      {
+                      "ID": "poiSearch",
+                      "Name": "搜索服务",
+                      "Description": "根据关键词搜索",
+                      "ReturnType": "Node",
+                      "ReturnDesc": "搜索结果列表,是一个数组,每一项是一个字典,包括{name:'POI名称',pt:'POI坐标',address:'POI地址',city:'POI所在城市',phone:'POI电话号码'}",
+                      "Paras": [
+                                {
+                                "ID": "type",
+                                "Name": "类型",
+                                "Type": "Number",
+                                "Required": 1,
+                                "DefaultValue": "",
+                                "Description": "搜索类型，是一个枚举值。0:城市POI检索;1:在矩形范围内POI检索;2:根据中心点、半径POI检索;"
+                                },
+                                {
+                                "ID": "keyword",
+                                "Name": "关键字",
+                                "Type": "String",
+                                "Required": 1,
+                                "DefaultValue": "",
+                                "Description": "搜索的关键字"
+                                },
+                                {
+                                "ID": "param",
+                                "Name": "检索参数",
+                                "Type": "Node",
+                                "Required": 1,
+                                "DefaultValue": "",
+                                "Description": "根据检索类型设置检索参数，当type = 0时，param为{city:''}；当type = 1时，param 为{leftBottom:'39.915174,116.403901(纬度,经度)',rightTop:'39.915174,116.403901(纬度,经度)'}表示矩形区域，左下角和右上角的经纬度坐标点；当type = 2时，param为{location:'39.915174,116.403901(纬度,经度)',radius:''}，其中location为检索的中心点经纬度，radius为周边检索半径"
+                                },
+                                {
+                                "ID": "pageIndex",
+                                "Name": "分页索引",
+                                "Type": "Number",
+                                "Required": 0,
+                                "DefaultValue": "0",
+                                "Description": ""
+                                },
+                                {
+                                "ID": "pageNum",
+                                "Name": "分页容量",
+                                "Type": "Number",
+                                "Required": 0,
+                                "DefaultValue": "10",
+                                "Description": ""
+                                }
+                                ]
+                      }
+                      ]
 }

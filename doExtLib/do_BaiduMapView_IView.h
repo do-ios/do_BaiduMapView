@@ -13,8 +13,10 @@
 @required
 //属性方法
 - (void)change_zoomLevel:(NSString *)newValue;
+- (void)change_mapType:(NSString *)newValue;
 
 //同步或异步方法
+- (void)poiSearch:(NSArray *)parms;
 - (void)addMarkers:(NSArray *)parms;
 - (void)removeAll:(NSArray *)parms;
 - (void)removeMarker:(NSArray *)parms;

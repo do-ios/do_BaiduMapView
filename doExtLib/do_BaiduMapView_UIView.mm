@@ -23,13 +23,15 @@
 #import <BaiduMapAPI_Base/BMKGeneralDelegate.h>
 #import <BaiduMapAPI_Map/BMKPointAnnotation.h>
 #import <BaiduMapAPI_Utils/BMKUtilsComponent.h>
+#import <BaiduMapAPI_Search/BMKSearchComponent.h>
+#import <BaiduMapAPI_Cloud/BMKCloudSearchComponent.h>
 #import <objc/runtime.h>
 
 BMKMapManager *_mapManager;
 BMKMapView *_mapView;
 NSString *_modelString;
 
-@interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate>
+@interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate,BMKPoiSearchDelegate>
 @end
 @implementation do_BaiduMapView_UIView
 {
@@ -39,6 +41,7 @@ NSString *_modelString;
     NSDictionary *dict;
     id<doIScriptEngine> _scritEngine;
     NSString *_callbackName;
+    BMKPoiSearch *_poisearch;
 }
 #pragma mark - doIUIModuleView协议方法（必须）
 //引用Model对象
@@ -247,6 +250,51 @@ NSString *_modelString;
         [_invokeResult SetResultBoolean:NO];
     }
 }
+//异步
+- (void)poiSearch:(NSArray *)parms
+{
+    //异步耗时操作，但是不需要启动线程，框架会自动加载一个后台线程处理这个函数
+    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    //参数字典_dictParas
+    _scritEngine = [parms objectAtIndex:1];
+    //自己的代码实现
+    int type = [doJsonHelper GetOneInteger:_dictParas :@"type" :0];
+    NSString *keyword = [doJsonHelper GetOneText:_dictParas :@"keyword" :@""];
+    int pageIndex = [doJsonHelper GetOneInteger:_dictParas :@"pageIndex" :0];
+    int pageNum = [doJsonHelper GetOneInteger:_dictParas :@"pageNum" :0];
+    NSDictionary *param = [doJsonHelper GetOneNode:_dictParas :@"param"];
+    
+    _poisearch = [[BMKPoiSearch alloc]init];
+    _poisearch.delegate = self;
+    if (type == 0) {
+        BMKCitySearchOption *option = [self getCitySearchOption:param];
+        [_poisearch poiSearchInCity:option];
+        option.keyword = keyword;
+        option.pageIndex = pageIndex;
+        option.pageCapacity = pageNum;
+        [_poisearch poiSearchInCity:option];
+    }
+    else if(type == 1)
+    {
+        BMKBoundSearchOption *option = [self getBoundSearchOption:param];
+        option.keyword = keyword;
+        option.pageIndex = pageIndex;
+        option.pageCapacity = pageNum;
+        [_poisearch poiSearchInbounds:option];
+    }
+    else if (type == 2)
+    {
+        BMKNearbySearchOption *option = [self getNearbySearchOption:param];
+        option.keyword = keyword;
+        option.pageIndex = pageIndex;
+        option.pageCapacity = pageNum;
+        [_poisearch poiSearchNearBy:option];
+    }
+    _callbackName = [parms objectAtIndex:2];
+    //回调函数名_callbackName
+    doInvokeResult *_invokeResult = [[doInvokeResult alloc] init];
+    //_invokeResult设置返回值
+}
 
 #pragma mark - BMKMapViewDelegate
 -(BMKAnnotationView *)mapView:(BMKMapView *)mapView viewForAnnotation:(id<BMKAnnotation>)annotation
@@ -289,7 +337,57 @@ NSString *_modelString;
     [_invokeResult SetResultText:viewID];
     [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
 }
-
+#pragma mark - poi搜索代理方法
+- (void)onGetPoiResult:(BMKPoiSearch *)searcher result:(BMKPoiResult *)poiResult errorCode:(BMKSearchErrorCode)errorCode
+{
+    NSMutableArray *resultArray = [NSMutableArray array];
+    
+    if (errorCode == BMK_SEARCH_NO_ERROR) {
+        NSArray *poiInfoList = poiResult.poiInfoList;
+        for (BMKPoiInfo *info in poiInfoList) {
+            NSMutableDictionary *dictNode = [NSMutableDictionary dictionary];
+            [dictNode setObject:info.name forKey:@"name"];
+            [dictNode setObject:@"" forKey:@"pt"];
+            [dictNode setObject:info.address forKey:@"address"];
+            [dictNode setObject:info.city forKey:@"city"];
+            [resultArray addObject:dict];
+        }
+        doInvokeResult *invokeResult = [[doInvokeResult alloc]init];
+        [invokeResult SetResultArray:resultArray];
+        [_scritEngine Callback:_callbackName :invokeResult];
+    }
+}
+#pragma mark - 私有方法
+-(BMKCitySearchOption *) getCitySearchOption:(NSDictionary *)parma
+{
+    BMKCitySearchOption* option = [[BMKCitySearchOption alloc]init];
+    option.city = [parma objectForKey:@"city"];
+    return option;
+}
+- (BMKBoundSearchOption *)getBoundSearchOption:(NSDictionary *)parma
+{
+    BMKBoundSearchOption *option = [[BMKBoundSearchOption alloc]init];
+    NSString *leftBottom = [parma objectForKey:@"leftBottom"];
+    NSString *rightTop = [parma objectForKey:@"rightTop"];
+    NSArray *lefts = [leftBottom componentsSeparatedByString:@","];
+    NSArray *rights = [rightTop componentsSeparatedByString:@","];
+    CLLocationCoordinate2D _leftBottom = CLLocationCoordinate2DMake([lefts[0]floatValue ], [lefts[1] floatValue]);
+    CLLocationCoordinate2D _rightTop = CLLocationCoordinate2DMake([rights[0] floatValue],[rights[1] floatValue]);
+    option.leftBottom = _leftBottom;
+    option.rightTop = _rightTop;
+    return option;
+}
+- (BMKNearbySearchOption *)getNearbySearchOption:(NSDictionary *)parma
+{
+    BMKNearbySearchOption *option = [[BMKNearbySearchOption alloc]init];
+    NSString *location = [parma objectForKey:@"location"];
+    NSString *radius = [parma objectForKey:@"radius"];
+    NSArray *locS = [location componentsSeparatedByString:@","];
+    CLLocationCoordinate2D _location = CLLocationCoordinate2DMake([locS[0]floatValue ], [locS[1] floatValue]);
+    option.location = _location;
+    option.radius = [radius floatValue];
+    return option;
+}
 
 
 #pragma mark - doIUIModuleView协议方法（必须）<大部分情况不需修改>
