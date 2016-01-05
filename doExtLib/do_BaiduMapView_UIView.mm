@@ -27,9 +27,7 @@
 #import <BaiduMapAPI_Cloud/BMKCloudSearchComponent.h>
 #import <objc/runtime.h>
 
-BMKMapManager *_mapManager;
-BMKMapView *_mapView;
-NSString *_modelString;
+
 
 @interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate,BMKPoiSearchDelegate>
 @end
@@ -42,6 +40,9 @@ NSString *_modelString;
     id<doIScriptEngine> _scritEngine;
     NSString *_callbackName;
     BMKPoiSearch *_poisearch;
+    BMKMapManager *_mapManager;
+    BMKMapView *_mapView;
+    NSString *_modelString;
 }
 #pragma mark - doIUIModuleView协议方法（必须）
 //引用Model对象
@@ -68,6 +69,8 @@ NSString *_modelString;
     _mapView.centerCoordinate = CLLocationCoordinate2DMake(39.9255, 116.3995);
     _mapView.showMapScaleBar = YES;
     _mapView.delegate = self;
+    _poisearch = [[BMKPoiSearch alloc]init];
+    _poisearch.delegate = self;
     _dictAnnotation = [[NSMutableDictionary alloc]init];
     _dictImags = [[NSMutableDictionary alloc]init];
 }
@@ -261,14 +264,10 @@ NSString *_modelString;
     int type = [doJsonHelper GetOneInteger:_dictParas :@"type" :0];
     NSString *keyword = [doJsonHelper GetOneText:_dictParas :@"keyword" :@""];
     int pageIndex = [doJsonHelper GetOneInteger:_dictParas :@"pageIndex" :0];
-    int pageNum = [doJsonHelper GetOneInteger:_dictParas :@"pageNum" :0];
+    int pageNum = [doJsonHelper GetOneInteger:_dictParas :@"pageSize" :10];
     NSDictionary *param = [doJsonHelper GetOneNode:_dictParas :@"param"];
-    
-    _poisearch = [[BMKPoiSearch alloc]init];
-    _poisearch.delegate = self;
     if (type == 0) {
         BMKCitySearchOption *option = [self getCitySearchOption:param];
-        [_poisearch poiSearchInCity:option];
         option.keyword = keyword;
         option.pageIndex = pageIndex;
         option.pageCapacity = pageNum;
@@ -291,9 +290,6 @@ NSString *_modelString;
         [_poisearch poiSearchNearBy:option];
     }
     _callbackName = [parms objectAtIndex:2];
-    //回调函数名_callbackName
-    doInvokeResult *_invokeResult = [[doInvokeResult alloc] init];
-    //_invokeResult设置返回值
 }
 
 #pragma mark - BMKMapViewDelegate
@@ -345,12 +341,13 @@ NSString *_modelString;
     if (errorCode == BMK_SEARCH_NO_ERROR) {
         NSArray *poiInfoList = poiResult.poiInfoList;
         for (BMKPoiInfo *info in poiInfoList) {
+            NSString *pt = [NSString stringWithFormat:@"%f,%f",info.pt.latitude,info.pt.longitude];
             NSMutableDictionary *dictNode = [NSMutableDictionary dictionary];
             [dictNode setObject:info.name forKey:@"name"];
-            [dictNode setObject:@"" forKey:@"pt"];
+            [dictNode setObject:pt forKey:@"pt"];
             [dictNode setObject:info.address forKey:@"address"];
             [dictNode setObject:info.city forKey:@"city"];
-            [resultArray addObject:dict];
+            [resultArray addObject:dictNode];
         }
         doInvokeResult *invokeResult = [[doInvokeResult alloc]init];
         [invokeResult SetResultArray:resultArray];
