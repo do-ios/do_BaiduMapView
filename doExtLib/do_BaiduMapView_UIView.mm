@@ -168,15 +168,14 @@
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     //参数字典_dictParas
     //自己的代码实现
-    
+    NSArray *parmArray = [doJsonHelper GetOneArray :_dictParas :@"data"];
     doInvokeResult *_invokeResult = [parms objectAtIndex:2];
-    //_invokeResult设置返回值
-    for (id _annotation in _dictParas[@"data"]) {
+    for (NSDictionary *parm in parmArray) {
         BMKPointAnnotation *_pointAnnotation = [[BMKPointAnnotation alloc]init];
-        NSString *latitude = _annotation[@"latitude"];
-        NSString *longitude = _annotation[@"longitude"];
-        NSString *imagPath = _annotation[@"url"];
-        NSString *info = _annotation[@"info"];
+        NSString *latitude = [doJsonHelper GetOneText:parm :@"latitude" :@""];
+        NSString *longitude = [doJsonHelper GetOneText:parm :@"longitude" :@""];
+        NSString *imagePath = [doJsonHelper GetOneText:parm:@"url":@""];
+        NSString *info = [doJsonHelper GetOneText:parm:@"info":@""];
         if (latitude == nil || [latitude isEqualToString:@""] || longitude == nil || [longitude isEqualToString:@""])
         {
             [_invokeResult SetResultBoolean:NO];
@@ -189,7 +188,8 @@
             coor.longitude = [longitude floatValue];
             [_pointAnnotation setTitle:info];
             [_pointAnnotation setCoordinate:coor];
-            _annotationID = _annotation[@"id"];
+            _annotationID = [doJsonHelper GetOneText:parm :@"id" :@""];
+
             for (id key in _dictAnnotation.allKeys) {
                 if ([key isEqualToString:_annotationID]) {
                     [_mapView removeAnnotation:_dictAnnotation[key]];
@@ -197,7 +197,7 @@
                 }
             }
             [_dictAnnotation setValue:_pointAnnotation forKey:_annotationID];
-            [_dictImags setValue:imagPath forKey:_annotationID];
+            [_dictImags setValue:imagePath forKey:_annotationID];
             [_mapView addAnnotation:_pointAnnotation];
         }
     }
@@ -220,18 +220,22 @@
     
     doInvokeResult *_invokeResult = [parms objectAtIndex:2];
     //_invokeResult设置返回值
-    NSString *_pointAnnotationID = _dictParas[@"ids"][0];
-    if ([_dictAnnotation objectForKey:_pointAnnotationID] != nil)
-    {
-        [_mapView removeAnnotation:_dictAnnotation[_pointAnnotationID]];
-        [_dictAnnotation removeObjectForKey:_pointAnnotationID];
-        [_dictImags removeObjectForKey:_pointAnnotationID];
-        [_invokeResult SetResultBoolean:YES];
+    NSArray *ids = [doJsonHelper GetOneArray:_dictParas :@"ids"];
+    BOOL flag = YES;
+    for (NSString *_pointAnnotationID in ids) {
+        if ([_dictAnnotation objectForKey:_pointAnnotationID] != nil)
+        {
+            [_mapView removeAnnotation:_dictAnnotation[_pointAnnotationID]];
+            [_dictAnnotation removeObjectForKey:_pointAnnotationID];
+            [_dictImags removeObjectForKey:_pointAnnotationID];
+        }
+        else
+        {
+            flag = NO;
+        }
     }
-    else
-    {
-        [_invokeResult SetResultBoolean:NO];
-    }
+    [_invokeResult SetResultBoolean:flag];
+
 }
 - (void)setCenter:(NSArray *)parms
 {
@@ -241,8 +245,8 @@
     
     doInvokeResult *_invokeResult = [parms objectAtIndex:2];
     //_invokeResult设置返回值
-    NSString *latitude = _dictParas[@"latitude"];
-    NSString *longitude = _dictParas[@"longitude"];
+    NSString *latitude = [doJsonHelper GetOneText:_dictParas :@"latitude" :@""];
+    NSString *longitude = [doJsonHelper GetOneText:_dictParas :@"longitude" :@""];
     if (latitude != nil && longitude != nil)
     {
         _mapView.centerCoordinate = CLLocationCoordinate2DMake([latitude floatValue], [longitude floatValue]);
@@ -332,6 +336,17 @@
     doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
     [_invokeResult SetResultText:viewID];
     [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
+}
+- (void)mapView:(BMKMapView *)mapView onClickedMapBlank:(CLLocationCoordinate2D)coordinate
+{
+    doInvokeResult *invokeResult = [[doInvokeResult alloc]init];
+    NSString *latitudeStr = [NSString stringWithFormat:@"%f",coordinate.latitude];
+    NSString *longitudeStr = [NSString stringWithFormat:@"%f",coordinate.longitude];
+    NSMutableDictionary *resNode = [NSMutableDictionary dictionary];
+    [resNode setObject:latitudeStr forKey:@"latitude"];
+    [resNode setObject:longitudeStr forKey:@"longitude"];
+    [invokeResult SetResultNode:resNode];
+    [_model.EventCenter FireEvent:@"touchMap" :invokeResult];
 }
 #pragma mark - poi搜索代理方法
 - (void)onGetPoiResult:(BMKPoiSearch *)searcher result:(BMKPoiResult *)poiResult errorCode:(BMKSearchErrorCode)errorCode
