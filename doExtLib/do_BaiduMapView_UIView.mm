@@ -73,6 +73,11 @@
     _poisearch.delegate = self;
     _dictAnnotation = [[NSMutableDictionary alloc]init];
     _dictImags = [[NSMutableDictionary alloc]init];
+
+    NSString *mapType = [(doUIModule *)_model GetProperty:@"mapType"].DefaultValue;
+    
+    [_model SetPropertyValue:@"mapType" :mapType];
+    
 }
 
 //销毁所有的全局对象
@@ -123,6 +128,7 @@
     {
         [_mapView setMapType:BMKMapTypeSatellite];
     }
+    
 }
 - (void)change_zoomLevel:(NSString *)newValue
 {
