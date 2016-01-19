@@ -43,6 +43,8 @@
     BMKMapManager *_mapManager;
     BMKMapView *_mapView;
     NSString *_modelString;
+    
+    NSMutableArray *markerInfos;
 }
 #pragma mark - doIUIModuleView协议方法（必须）
 //引用Model对象
@@ -78,6 +80,8 @@
     
     [_model SetPropertyValue:@"mapType" :mapType];
     
+    //marker的信息
+    markerInfos = [NSMutableArray array];
 }
 
 //销毁所有的全局对象
@@ -88,10 +92,14 @@
     [self removeAll:nil];
     _dictAnnotation = nil;
     _dictImags = nil;
+    [_mapView removeFromSuperview];
+    _mapView = nil;
     if(_mapManager)
     {
         [_mapManager stop];
     }
+    
+    markerInfos = nil;
 }
 
 //实现布局
@@ -175,6 +183,7 @@
     //参数字典_dictParas
     //自己的代码实现
     NSArray *parmArray = [doJsonHelper GetOneArray :_dictParas :@"data"];
+    [markerInfos addObjectsFromArray:parmArray];
     doInvokeResult *_invokeResult = [parms objectAtIndex:2];
     for (NSDictionary *parm in parmArray) {
         BMKPointAnnotation *_pointAnnotation = [[BMKPointAnnotation alloc]init];
@@ -216,6 +225,7 @@
     }
     [_dictAnnotation removeAllObjects];
     [_dictImags removeAllObjects];
+    [markerInfos removeAllObjects];
 }
 
 - (void)removeMarker:(NSArray *)parms
@@ -321,26 +331,39 @@
     
     NSString * imgPath = [doIOHelper GetLocalFileFullPath:_model.CurrentPage.CurrentApp :_dictImags[_pathID]];
     UIImage * image = [UIImage imageWithContentsOfFile:imgPath];
-    image = [doUIModuleHelper imageWithImageSimple:image scaledToSize:CGSizeMake(image.size.width * _model.XZoom, image.size.height * _model.YZoom)];
+
+    _annotationView.image = image;
     NSMutableArray *images = [NSMutableArray array];
     [images addObject:image];
     _annotationView.viewID = _pathID;
-    _annotationView.annotationImages = images;
+//    _annotationView.annotationImages = images;
     _annotationView.draggable = YES;
     return _annotationView;
 }
 - (void)mapView:(BMKMapView *)mapView didSelectAnnotationView:(BMKAnnotationView *)view
 {
+    NSMutableDictionary *node ;
     NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
+    for (NSDictionary *dictTmp in markerInfos) {
+        if ([[dictTmp objectForKey:@"id"]isEqualToString:viewID]) {
+            node = [NSMutableDictionary dictionaryWithDictionary:dictTmp];
+        }
+    }
     doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
-    [_invokeResult SetResultText:viewID];
+    [_invokeResult SetResultNode:node];
     [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
 }
 - (void)mapView:(BMKMapView *)mapView annotationViewForBubble:(BMKAnnotationView *)view;
 {
+    NSMutableDictionary *node ;
     NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
+    for (NSDictionary *dictTmp in markerInfos) {
+        if ([[dictTmp objectForKey:@"id"]isEqualToString:viewID]) {
+            node = [NSMutableDictionary dictionaryWithDictionary:dictTmp];
+        }
+    }
     doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
-    [_invokeResult SetResultText:viewID];
+    [_invokeResult SetResultNode:node];
     [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
 }
 - (void)mapView:(BMKMapView *)mapView onClickedMapBlank:(CLLocationCoordinate2D)coordinate
