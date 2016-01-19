@@ -18,6 +18,7 @@
 //同步或异步方法
 - (void)poiSearch:(NSArray *)parms;
 - (void)addMarkers:(NSArray *)parms;
+- (void)addOverlay:(NSArray *)parms;
 - (void)removeAll:(NSArray *)parms;
 - (void)removeMarker:(NSArray *)parms;
 - (void)setCenter:(NSArray *)parms;

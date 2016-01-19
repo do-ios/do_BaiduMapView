@@ -65,10 +65,16 @@
                    ],
     "Events": [
                {
+               "ID": "touchMap",
+               "Description": "点击地图时触发",
+               "ReturnType": "Node",
+               "ReturnDesc": "返回当前点击的位置坐标{\"latitude\":\"纬度\",\"longitude\":\"经度\"}"
+               },
+               {
                "ID": "touchMarker",
                "Description": "点击标记时触发，iOS平台只有第一次点击mark会触发该事件，之后需要点击弹出的缩略图触发",
-               "ReturnType": "String",
-               "ReturnDesc": "标记ID"
+               "ReturnType": "Node",
+               "ReturnDesc": "[{\"id\":\"标记ID,用户自定义标记唯一ID\",\"latitude\":\"纬度\",\"longitude\":\"经度\",\"url\":\"缩略图地址\",\"info\":\"描述信息\"}]"
                }
                ],
     "syncMethodes": [
@@ -86,6 +92,31 @@
                                "Required": 1,
                                "DefaultValue": "",
                                "Description": "[{\"id\":\"标记ID,用户自定义标记唯一ID\",\"latitude\":\"纬度\",\"longitude\":\"经度\",\"url\":\"缩略图地址\",\"info\":\"描述信息\"},...]"
+                               }
+                               ]
+                     },
+                     {
+                     "ID": "addOverlay",
+                     "Name": "添加集合图形",
+                     "Description": "添加集合图形遮盖物",
+                     "ReturnType": "",
+                     "ReturnDesc": "",
+                     "Paras": [
+                               {
+                               "ID": "type",
+                               "Name": "类型",
+                               "Type": "Number",
+                               "Required": 1,
+                               "DefaultValue": "",
+                               "Description": "支持的类型有，0圆形Circle，1折线:Polyline，2多边形:Polygon，3圆弧:Arc"
+                               },
+                               {
+                               "ID": "param",
+                               "Name": "参数",
+                               "Type": "Node",
+                               "Required": 1,
+                               "DefaultValue": "",
+                               "Description": "根据类型传递不同的参数,fillColor:图形填充颜色,参数fillColor只有闭合图形才有,color:线的颜色,width:线的宽度,lineDash:是否是虚线；圆形:需要中心点坐标(经纬度)和半径(单位:米),{\"latitude\":\"39.965\";\"longitude\":\"116.404\";\"radius\":\"10000\";\"fillColor\":\"FF00FF00\";\"color\":\"FF00FF00\";\"width\":\"2.0\";\"lineDash\":\"true\"}；折线和多边形:每一个是一个经纬度点,[{\"latitude\":\"39.965\",\"longitude\":\"116.404\";\"fillColor\":\"FF00FF00\";\"color\":\"FF00FF00\";\"width\":\"2.0\";\"lineDash\":\"true\"},{\"latitude\":\"39.965\",\"longitude\":\"116.404\";\"fillColor\":\"FF00FF00\";\"color\":\"FF00FF00\";\"width\":\"2.0\";\"lineDash\":\"true\"}...]；圆弧:根据指定经纬度生成一段圆弧,指定的经纬度坐标点数组(需传入3个点),每一个是一个经纬度点[{\"latitude\":\"39.965\",\"longitude\":\"116.404\";\"color\":\"FF00FF00\";\"width\":\"2.0\";\"lineDash\":\"true\"},{\"latitude\":\"39.965\",\"longitude\":\"116.404\";\"color\":\"FF00FF00\";\"width\":\"2.0\";\"lineDash\":\"true\"}]"
                                }
                                ]
                      },
@@ -195,7 +226,7 @@
                                 "Type": "Node",
                                 "Required": 1,
                                 "DefaultValue": "",
-                                "Description": "根据检索类型设置检索参数，当type = 0时，param为{city:''}；当type = 1时，param 为{leftBottom:'39.915174,116.403901(纬度,经度)',rightTop:'39.915174,116.403901(纬度,经度)'}表示矩形区域，左下角和右上角的经纬度坐标点；当type = 2时，param为{location:'39.915174,116.403901(纬度,经度)',radius:''}，其中location为检索的中心点经纬度，radius为周边检索半径"
+                                "Description": "根据检索类型设置检索参数，当type = 0时，param为{city:''}；当type = 1时，param 为{leftBottom:'39.915174,116.403901(纬度,经度)',rightTop:'39.915174,116.403901(纬度,经度)'}表示矩形区域，左下角和右上角的经纬度坐标点；当type = 2时，param为{location:'39.915174,116.403901(纬度,经度)',radius:''}，其中location为检索的中心点经纬度，radius为周边检索半径，单位为米"
                                 },
                                 {
                                 "ID": "pageIndex",
@@ -206,7 +237,7 @@
                                 "Description": ""
                                 },
                                 {
-                                "ID": "pageNum",
+                                "ID": "pageSize",
                                 "Name": "分页容量",
                                 "Type": "Number",
                                 "Required": 0,

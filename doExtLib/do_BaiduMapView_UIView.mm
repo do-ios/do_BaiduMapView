@@ -218,6 +218,13 @@
     }
     [_invokeResult SetResultBoolean:YES];
 }
+- (void)addOverlay:(NSArray *)parms
+{
+    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    int type = [doJsonHelper GetOneInteger:_dictParas :@"type" :0];
+    NSDictionary *parma = [doJsonHelper GetOneNode:_dictParas :@"param"];
+}
+
 - (void)removeAll:(NSArray *)parms
 {
     for (id key in _dictAnnotation.allKeys) {
@@ -313,6 +320,63 @@
 }
 
 #pragma mark - BMKMapViewDelegate
+/**
+ *查找指定overlay对应的View，如果该View尚未创建，返回nil
+ *@param overlay 指定的overlay
+ *@return 指定overlay对应的View
+ */
+- (BMKOverlayView *)viewForOverlay:(id <BMKOverlay>)overlay
+{
+    if ([overlay isKindOfClass:[BMKCircle class]])
+    {
+        BMKCircleView* circleView = [[BMKCircleView alloc] initWithOverlay:overlay];
+        circleView.fillColor = [[UIColor alloc] initWithRed:1 green:0 blue:0 alpha:0.5];
+        circleView.strokeColor = [[UIColor alloc] initWithRed:0 green:0 blue:1 alpha:0.5];
+        circleView.lineWidth = 5.0;
+        
+        return circleView;
+    }
+    
+    if ([overlay isKindOfClass:[BMKPolyline class]])
+    {
+        BMKPolylineView* polylineView = [[BMKPolylineView alloc] initWithOverlay:overlay];
+        if ([overlay isKindOfClass:[BMKPolyline class]]) {
+            polylineView.lineWidth = 5;
+            /// 使用分段颜色绘制时，必须设置（内容必须为UIColor）
+            polylineView.colors = [NSArray arrayWithObjects:
+                                   [[UIColor alloc] initWithRed:0 green:1 blue:0 alpha:1],
+                                   [[UIColor alloc] initWithRed:1 green:0 blue:0 alpha:1],
+                                   [[UIColor alloc] initWithRed:1 green:1 blue:1 alpha:1],
+                                   [[UIColor alloc] initWithRed:0 green:0 blue:0 alpha:1],
+                                   [[UIColor alloc] initWithRed:1 green:1 blue:0 alpha:0.5], nil];
+        }
+    return polylineView;
+    }
+    
+    if ([overlay isKindOfClass:[BMKPolygon class]])
+    {
+        BMKPolygonView* polygonView = [[BMKPolygonView alloc] initWithOverlay:overlay];
+        polygonView.strokeColor = [[UIColor alloc] initWithRed:0.0 green:0 blue:0.5 alpha:1];
+        polygonView.fillColor = [[UIColor alloc] initWithRed:0 green:1 blue:1 alpha:0.2];
+        polygonView.lineWidth =2.0;
+        polygonView.lineDash = NO;
+        return polygonView;
+    }
+    if ([overlay isKindOfClass:[BMKGroundOverlay class]])
+    {
+        BMKGroundOverlayView* groundView = [[BMKGroundOverlayView alloc] initWithOverlay:overlay];
+        return groundView;
+    }
+    if ([overlay isKindOfClass:[BMKArcline class]]) {
+        BMKArclineView *arclineView = [[BMKArclineView alloc] initWithArcline:overlay];
+        arclineView.strokeColor = [UIColor blueColor];
+        arclineView.lineDash = YES;
+        arclineView.lineWidth = 6.0;
+        return arclineView;
+    }
+    return nil;
+}
+
 -(BMKAnnotationView *)mapView:(BMKMapView *)mapView viewForAnnotation:(id<BMKAnnotation>)annotation
 {
     NSString *AnnotationViewID = @"AnimatedAnnotation";
@@ -399,12 +463,69 @@
     }
 }
 #pragma mark - 私有方法
+//添加圆形遮盖物
+- (BMKCircle *) addCircleOverlay:(NSDictionary *)parma
+{
+    NSString *latitude = [doJsonHelper GetOneText:parma :@"latitude" :@""];
+    NSString *longitude = [doJsonHelper GetOneText:parma :@"longitude" :@""];
+    NSString *radius = [doJsonHelper GetOneText:parma :@"radius" :@""];
+    CLLocationCoordinate2D coor;
+    coor.latitude = [latitude doubleValue];
+    coor.longitude = [longitude doubleValue];
+    BMKCircle *circle = [BMKCircle circleWithCenterCoordinate:coor radius:[radius doubleValue]];
+    return circle;
+}
+// 添加折线遮盖物
+- (BMKPolyline *) addPolylineOverlay:(NSArray *)parmas
+{
+    CLLocationCoordinate2D coords[1000] = {0};
+    for (int i = 0; i < parmas.count; i ++) {
+        NSDictionary *tempDict = [parmas objectAtIndex:i];
+        NSString *latitude = [doJsonHelper GetOneText:tempDict :@"latitude" :@""];
+        NSString *longitude = [doJsonHelper GetOneText:tempDict :@"longitude" :@""];
+        coords[i].latitude = [latitude doubleValue];
+        coords[i].longitude = [longitude doubleValue];
+    }
+    BMKPolyline *polyline = [BMKPolyline polylineWithCoordinates:coords count:parmas.count];
+    return polyline;
+}
+// 添加多边形遮盖物
+- (BMKPolygon *) addPolygonOverlay:(NSArray *)parmas
+{
+    CLLocationCoordinate2D coords[1000] = {0};
+    for (int i = 0; i < parmas.count; i ++) {
+        NSDictionary *tempDict = [parmas objectAtIndex:i];
+        NSString *latitude = [doJsonHelper GetOneText:tempDict :@"latitude" :@""];
+        NSString *longitude = [doJsonHelper GetOneText:tempDict :@"longitude" :@""];
+        coords[i].latitude = [latitude doubleValue];
+        coords[i].longitude = [longitude doubleValue];
+    }
+    BMKPolygon *polygon = [BMKPolygon polygonWithCoordinates:coords count:parmas.count];
+    return polygon;
+}
+// 添加圆弧遮盖物
+- (BMKArcline *) addArcOverlay:(NSArray *)parmas
+{
+    CLLocationCoordinate2D coords[2] = {0};
+    for (int i = 0; i < parmas.count; i ++) {
+        NSDictionary *tempDict = [parmas objectAtIndex:i];
+        NSString *latitude = [doJsonHelper GetOneText:tempDict :@"latitude" :@""];
+        NSString *longitude = [doJsonHelper GetOneText:tempDict :@"longitude" :@""];
+        coords[i].latitude = [latitude doubleValue];
+        coords[i].longitude = [longitude doubleValue];
+    }
+    BMKArcline *arcline = [BMKArcline arclineWithCoordinates:coords];
+    return arcline;
+}
+
+//城市内搜索
 -(BMKCitySearchOption *) getCitySearchOption:(NSDictionary *)parma
 {
     BMKCitySearchOption* option = [[BMKCitySearchOption alloc]init];
     option.city = [parma objectForKey:@"city"];
     return option;
 }
+//矩形内搜索
 - (BMKBoundSearchOption *)getBoundSearchOption:(NSDictionary *)parma
 {
     BMKBoundSearchOption *option = [[BMKBoundSearchOption alloc]init];
@@ -418,6 +539,7 @@
     option.rightTop = _rightTop;
     return option;
 }
+//圆形内搜索
 - (BMKNearbySearchOption *)getNearbySearchOption:(NSDictionary *)parma
 {
     BMKNearbySearchOption *option = [[BMKNearbySearchOption alloc]init];
