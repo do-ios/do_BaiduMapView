@@ -358,7 +358,7 @@
     {
         BMKCircleView* circleView = [[BMKCircleView alloc] initWithOverlay:overlay];
         [doUIModuleHelper GetColorFromString:_fillColor :[UIColor blackColor]];
-        circleView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor :[UIColor blackColor]];
+        circleView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor :[UIColor colorWithRed:0 green:0 blue:0 alpha:0]];
         circleView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor :[UIColor blackColor]];
         circleView.lineWidth = _lineWidth;
         circleView.lineDash = _isDash;
@@ -370,7 +370,7 @@
         polylineView.lineWidth = _lineWidth;
         polylineView.lineDash = _isDash;
         /// 使用分段颜色绘制时，必须设置（内容必须为UIColor）
-        polylineView.colors = [NSArray arrayWithObjects:[doUIModuleHelper GetColorFromString:_fillColor :[UIColor blackColor]], nil];
+        polylineView.colors = [NSArray arrayWithObjects:[doUIModuleHelper GetColorFromString:_strokecolor :[UIColor blackColor]], nil];
     return polylineView;
     }
     
@@ -378,7 +378,7 @@
     {
         BMKPolygonView* polygonView = [[BMKPolygonView alloc] initWithOverlay:overlay];
         polygonView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor :[UIColor blackColor]];
-        polygonView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor :[UIColor blackColor]];
+        polygonView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor :[UIColor colorWithRed:0 green:0 blue:0 alpha:0]];
         polygonView.lineWidth =_lineWidth;
         polygonView.lineDash = _isDash;
         return polygonView;
