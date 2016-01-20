@@ -45,6 +45,11 @@
     NSString *_modelString;
     
     NSMutableArray *markerInfos;
+    
+    NSString *_fillColor;
+    NSString *_strokecolor;
+    int _lineWidth;
+    BOOL _isDash;
 }
 #pragma mark - doIUIModuleView协议方法（必须）
 //引用Model对象
@@ -222,7 +227,29 @@
 {
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     int type = [doJsonHelper GetOneInteger:_dictParas :@"type" :0];
-    NSDictionary *parma = [doJsonHelper GetOneNode:_dictParas :@"param"];
+    _fillColor = [doJsonHelper GetOneText:_dictParas :@"fillColor" :@""];
+    _strokecolor = [doJsonHelper GetOneText:_dictParas :@"strokeColor" :@""];
+    _lineWidth = [doJsonHelper GetOneInteger:_dictParas :@"width" :1];
+    _isDash = [doJsonHelper GetOneBoolean:_dictParas :@"isDash" :NO];
+    if (type == 0) {//Circle
+        NSDictionary *parma = [doJsonHelper GetOneNode:_dictParas :@"data"];
+        [self addCircleOverlay:parma];
+    }
+    else if (type == 1)//Polyline
+    {
+        NSArray *parmas = [doJsonHelper GetOneArray:_dictParas :@"data"];
+        [self addPolylineOverlay:parmas];
+    }
+    else if (type == 2)//Polygon
+    {
+        NSArray *parmas = [doJsonHelper GetOneArray:_dictParas :@"data"];
+        [self addPolygonOverlay:parmas];
+    }
+    else if (type == 3)//Arc
+    {
+        NSArray *parmas = [doJsonHelper GetOneArray:_dictParas :@"data"];
+        [self addArcOverlay:parmas];
+    }
 }
 
 - (void)removeAll:(NSArray *)parms
@@ -330,48 +357,37 @@
     if ([overlay isKindOfClass:[BMKCircle class]])
     {
         BMKCircleView* circleView = [[BMKCircleView alloc] initWithOverlay:overlay];
-        circleView.fillColor = [[UIColor alloc] initWithRed:1 green:0 blue:0 alpha:0.5];
-        circleView.strokeColor = [[UIColor alloc] initWithRed:0 green:0 blue:1 alpha:0.5];
-        circleView.lineWidth = 5.0;
-        
+        [doUIModuleHelper GetColorFromString:_fillColor :[UIColor blackColor]];
+        circleView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor :[UIColor blackColor]];
+        circleView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor :[UIColor blackColor]];
+        circleView.lineWidth = _lineWidth;
+        circleView.lineDash = _isDash;
         return circleView;
     }
-    
     if ([overlay isKindOfClass:[BMKPolyline class]])
     {
         BMKPolylineView* polylineView = [[BMKPolylineView alloc] initWithOverlay:overlay];
-        if ([overlay isKindOfClass:[BMKPolyline class]]) {
-            polylineView.lineWidth = 5;
-            /// 使用分段颜色绘制时，必须设置（内容必须为UIColor）
-            polylineView.colors = [NSArray arrayWithObjects:
-                                   [[UIColor alloc] initWithRed:0 green:1 blue:0 alpha:1],
-                                   [[UIColor alloc] initWithRed:1 green:0 blue:0 alpha:1],
-                                   [[UIColor alloc] initWithRed:1 green:1 blue:1 alpha:1],
-                                   [[UIColor alloc] initWithRed:0 green:0 blue:0 alpha:1],
-                                   [[UIColor alloc] initWithRed:1 green:1 blue:0 alpha:0.5], nil];
-        }
+        polylineView.lineWidth = _lineWidth;
+        polylineView.lineDash = _isDash;
+        /// 使用分段颜色绘制时，必须设置（内容必须为UIColor）
+        polylineView.colors = [NSArray arrayWithObjects:[doUIModuleHelper GetColorFromString:_fillColor :[UIColor blackColor]], nil];
     return polylineView;
     }
     
     if ([overlay isKindOfClass:[BMKPolygon class]])
     {
         BMKPolygonView* polygonView = [[BMKPolygonView alloc] initWithOverlay:overlay];
-        polygonView.strokeColor = [[UIColor alloc] initWithRed:0.0 green:0 blue:0.5 alpha:1];
-        polygonView.fillColor = [[UIColor alloc] initWithRed:0 green:1 blue:1 alpha:0.2];
-        polygonView.lineWidth =2.0;
-        polygonView.lineDash = NO;
+        polygonView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor :[UIColor blackColor]];
+        polygonView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor :[UIColor blackColor]];
+        polygonView.lineWidth =_lineWidth;
+        polygonView.lineDash = _isDash;
         return polygonView;
-    }
-    if ([overlay isKindOfClass:[BMKGroundOverlay class]])
-    {
-        BMKGroundOverlayView* groundView = [[BMKGroundOverlayView alloc] initWithOverlay:overlay];
-        return groundView;
     }
     if ([overlay isKindOfClass:[BMKArcline class]]) {
         BMKArclineView *arclineView = [[BMKArclineView alloc] initWithArcline:overlay];
-        arclineView.strokeColor = [UIColor blueColor];
-        arclineView.lineDash = YES;
-        arclineView.lineWidth = 6.0;
+        arclineView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor :[UIColor blackColor]];
+        arclineView.lineDash = _isDash;
+        arclineView.lineWidth = _lineWidth;
         return arclineView;
     }
     return nil;
@@ -464,7 +480,7 @@
 }
 #pragma mark - 私有方法
 //添加圆形遮盖物
-- (BMKCircle *) addCircleOverlay:(NSDictionary *)parma
+- (void ) addCircleOverlay:(NSDictionary *)parma
 {
     NSString *latitude = [doJsonHelper GetOneText:parma :@"latitude" :@""];
     NSString *longitude = [doJsonHelper GetOneText:parma :@"longitude" :@""];
@@ -473,10 +489,10 @@
     coor.latitude = [latitude doubleValue];
     coor.longitude = [longitude doubleValue];
     BMKCircle *circle = [BMKCircle circleWithCenterCoordinate:coor radius:[radius doubleValue]];
-    return circle;
+    [_mapView addOverlay:circle];
 }
 // 添加折线遮盖物
-- (BMKPolyline *) addPolylineOverlay:(NSArray *)parmas
+- (void ) addPolylineOverlay:(NSArray *)parmas
 {
     CLLocationCoordinate2D coords[1000] = {0};
     for (int i = 0; i < parmas.count; i ++) {
@@ -487,10 +503,10 @@
         coords[i].longitude = [longitude doubleValue];
     }
     BMKPolyline *polyline = [BMKPolyline polylineWithCoordinates:coords count:parmas.count];
-    return polyline;
+    [_mapView addOverlay:polyline];
 }
 // 添加多边形遮盖物
-- (BMKPolygon *) addPolygonOverlay:(NSArray *)parmas
+- (void) addPolygonOverlay:(NSArray *)parmas
 {
     CLLocationCoordinate2D coords[1000] = {0};
     for (int i = 0; i < parmas.count; i ++) {
@@ -501,10 +517,10 @@
         coords[i].longitude = [longitude doubleValue];
     }
     BMKPolygon *polygon = [BMKPolygon polygonWithCoordinates:coords count:parmas.count];
-    return polygon;
+    [_mapView addOverlay:polygon];
 }
 // 添加圆弧遮盖物
-- (BMKArcline *) addArcOverlay:(NSArray *)parmas
+- (void) addArcOverlay:(NSArray *)parmas
 {
     CLLocationCoordinate2D coords[2] = {0};
     for (int i = 0; i < parmas.count; i ++) {
@@ -515,7 +531,7 @@
         coords[i].longitude = [longitude doubleValue];
     }
     BMKArcline *arcline = [BMKArcline arclineWithCoordinates:coords];
-    return arcline;
+    [_mapView addOverlay:arcline];
 }
 
 //城市内搜索

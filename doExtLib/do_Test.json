@@ -106,17 +106,49 @@
                                "ID": "type",
                                "Name": "类型",
                                "Type": "Number",
-                               "Required": 1,
                                "DefaultValue": "",
+                               "Required": 1,
                                "Description": "支持的类型有，0圆形Circle，1折线:Polyline，2多边形:Polygon，3圆弧:Arc"
                                },
                                {
-                               "ID": "param",
+                               "ID": "data",
                                "Name": "参数",
                                "Type": "Node",
-                               "Required": 1,
                                "DefaultValue": "",
-                               "Description": "根据类型传递不同的参数,fillColor:图形填充颜色,参数fillColor只有闭合图形才有,color:线的颜色,width:线的宽度,lineDash:是否是虚线；圆形:需要中心点坐标(经纬度)和半径(单位:米),{\"latitude\":\"39.965\";\"longitude\":\"116.404\";\"radius\":\"10000\";\"fillColor\":\"FF00FF00\";\"color\":\"FF00FF00\";\"width\":\"2.0\";\"lineDash\":\"true\"}；折线和多边形:每一个是一个经纬度点,[{\"latitude\":\"39.965\",\"longitude\":\"116.404\";\"fillColor\":\"FF00FF00\";\"color\":\"FF00FF00\";\"width\":\"2.0\";\"lineDash\":\"true\"},{\"latitude\":\"39.965\",\"longitude\":\"116.404\";\"fillColor\":\"FF00FF00\";\"color\":\"FF00FF00\";\"width\":\"2.0\";\"lineDash\":\"true\"}...]；圆弧:根据指定经纬度生成一段圆弧,指定的经纬度坐标点数组(需传入3个点),每一个是一个经纬度点[{\"latitude\":\"39.965\",\"longitude\":\"116.404\";\"color\":\"FF00FF00\";\"width\":\"2.0\";\"lineDash\":\"true\"},{\"latitude\":\"39.965\",\"longitude\":\"116.404\";\"color\":\"FF00FF00\";\"width\":\"2.0\";\"lineDash\":\"true\"}]"
+                               "Required": 1,
+                               "Description": "根据类型传递不同的参数；圆形:需要中心点坐标(经纬度)和半径(单位:米),{\"latitude\":\"39.965\",\"longitude\":\"116.404\",\"radius\":\"10000\"}；折线和多边形:每一个是一个经纬度点,[{\"latitude\":\"39.965\",\"longitude\":\"116.404\"},{\"latitude\":\"39.965\",\"longitude\":\"116.404\"}...]；圆弧:根据指定经纬度生成一段圆弧,指定的经纬度坐标点数组(需传入3个点),每一个是一个经纬度点[{\"latitude\":\"39.965\",\"longitude\":\"116.404\"},{\"latitude\":\"39.965\",\"longitude\":\"116.404\"}]"
+                               },
+                               {
+                               "ID": "fillColor",
+                               "Name": "图形填充颜色",
+                               "Type": "String",
+                               "DefaultValue": "",
+                               "Required": 0,
+                               "Description": "只有闭合图形才有填充颜色"
+                               },
+                               {
+                               "ID": "strokeColor",
+                               "Name": "线条描边色",
+                               "Type": "String",
+                               "DefaultValue": "",
+                               "Required": 0,
+                               "Description": ""
+                               },
+                               {
+                               "ID": "width",
+                               "Name": "线条宽度",
+                               "Type": "Number",
+                               "DefaultValue": "",
+                               "Required": 0,
+                               "Description": "只有闭合图形才有填充颜色"
+                               },
+                               {
+                               "ID": "isDash",
+                               "Name": "是否是虚线",
+                               "Type": "Boolean",
+                               "DefaultValue": "",
+                               "Required": 0,
+                               "Description": "线条是否显示为虚线"
                                }
                                ]
                      },
