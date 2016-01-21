@@ -507,7 +507,12 @@
         coords[i].latitude = [latitude doubleValue];
         coords[i].longitude = [longitude doubleValue];
     }
-    _polyline = [BMKPolyline polylineWithCoordinates:coords count:parmas.count];
+    NSArray *colorIndexs = [NSArray arrayWithObjects:
+                            [NSNumber numberWithInt:1],
+                            [NSNumber numberWithInt:2],
+                            [NSNumber numberWithInt:3],
+                            [NSNumber numberWithInt:0], nil];
+    _polyline = [BMKPolyline polylineWithCoordinates:coords count:parmas.count textureIndex:colorIndexs];
     [_mapView addOverlay:_polyline];
 }
 // 添加多边形遮盖物
