@@ -50,6 +50,11 @@
     NSString *_strokecolor;
     int _lineWidth;
     BOOL _isDash;
+    
+    BMKPolyline *_polyline;
+    BMKArcline *_arcline;
+    BMKPolygon *_polygon;
+    BMKCircle *_circle;
 }
 #pragma mark - doIUIModuleView协议方法（必须）
 //引用Model对象
@@ -352,7 +357,7 @@
  *@param overlay 指定的overlay
  *@return 指定overlay对应的View
  */
-- (BMKOverlayView *)viewForOverlay:(id <BMKOverlay>)overlay
+- (BMKOverlayView *)mapView:(BMKMapView *)mapView viewForOverlay:(id <BMKOverlay>)overlay
 {
     if ([overlay isKindOfClass:[BMKCircle class]])
     {
@@ -488,8 +493,8 @@
     CLLocationCoordinate2D coor;
     coor.latitude = [latitude doubleValue];
     coor.longitude = [longitude doubleValue];
-    BMKCircle *circle = [BMKCircle circleWithCenterCoordinate:coor radius:[radius doubleValue]];
-    [_mapView addOverlay:circle];
+    _circle = [BMKCircle circleWithCenterCoordinate:coor radius:[radius doubleValue]];
+    [_mapView addOverlay:_circle];
 }
 // 添加折线遮盖物
 - (void ) addPolylineOverlay:(NSArray *)parmas
@@ -502,8 +507,8 @@
         coords[i].latitude = [latitude doubleValue];
         coords[i].longitude = [longitude doubleValue];
     }
-    BMKPolyline *polyline = [BMKPolyline polylineWithCoordinates:coords count:parmas.count];
-    [_mapView addOverlay:polyline];
+    _polyline = [BMKPolyline polylineWithCoordinates:coords count:parmas.count];
+    [_mapView addOverlay:_polyline];
 }
 // 添加多边形遮盖物
 - (void) addPolygonOverlay:(NSArray *)parmas
@@ -516,13 +521,13 @@
         coords[i].latitude = [latitude doubleValue];
         coords[i].longitude = [longitude doubleValue];
     }
-    BMKPolygon *polygon = [BMKPolygon polygonWithCoordinates:coords count:parmas.count];
-    [_mapView addOverlay:polygon];
+    _polygon = [BMKPolygon polygonWithCoordinates:coords count:parmas.count];
+    [_mapView addOverlay:_polygon];
 }
 // 添加圆弧遮盖物
 - (void) addArcOverlay:(NSArray *)parmas
 {
-    CLLocationCoordinate2D coords[2] = {0};
+    CLLocationCoordinate2D coords[3] = {0};
     for (int i = 0; i < parmas.count; i ++) {
         NSDictionary *tempDict = [parmas objectAtIndex:i];
         NSString *latitude = [doJsonHelper GetOneText:tempDict :@"latitude" :@""];
@@ -530,8 +535,8 @@
         coords[i].latitude = [latitude doubleValue];
         coords[i].longitude = [longitude doubleValue];
     }
-    BMKArcline *arcline = [BMKArcline arclineWithCoordinates:coords];
-    [_mapView addOverlay:arcline];
+    _arcline = [BMKArcline arclineWithCoordinates:coords];
+    [_mapView addOverlay:_arcline];
 }
 
 //城市内搜索
