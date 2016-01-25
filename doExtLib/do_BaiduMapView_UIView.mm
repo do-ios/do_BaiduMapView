@@ -159,9 +159,9 @@
     if (level<3) {
         level = 3;
     }
-    else if(level > 18)
+    else if(level > 20)
     {
-        level = 18;
+        level = 20;
     }
     _mapView.zoomLevel = level;
 }
@@ -496,6 +496,7 @@
     _circle = [BMKCircle circleWithCenterCoordinate:coor radius:[radius doubleValue]];
     [_mapView addOverlay:_circle];
 }
+
 // 添加折线遮盖物
 - (void ) addPolylineOverlay:(NSArray *)parmas
 {
