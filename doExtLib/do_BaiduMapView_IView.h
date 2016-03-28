@@ -21,5 +21,6 @@
 - (void)addOverlay:(NSArray *)parms;
 - (void)removeAll:(NSArray *)parms;
 - (void)removeMarker:(NSArray *)parms;
+- (void)removeOverlay:(NSArray *)parms;
 - (void)setCenter:(NSArray *)parms;
 @end

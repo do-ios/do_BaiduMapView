@@ -34,6 +34,7 @@
 @implementation do_BaiduMapView_UIView
 {
     NSMutableDictionary *_dictAnnotation;
+    NSMutableDictionary *_dictOverlay;
     NSMutableDictionary *_dictImags;
     NSString *_annotationID;
     NSDictionary *dict;
@@ -84,6 +85,7 @@
     _poisearch = [[BMKPoiSearch alloc]init];
     _poisearch.delegate = self;
     _dictAnnotation = [[NSMutableDictionary alloc]init];
+    _dictOverlay = [NSMutableDictionary dictionary];
     _dictImags = [[NSMutableDictionary alloc]init];
 
     NSString *mapType = [(doUIModule *)_model GetProperty:@"mapType"].DefaultValue;
@@ -236,25 +238,28 @@
     _strokecolor = [doJsonHelper GetOneText:_dictParas :@"strokeColor" :@""];
     _lineWidth = [doJsonHelper GetOneInteger:_dictParas :@"width" :1];
     _isDash = [doJsonHelper GetOneBoolean:_dictParas :@"isDash" :NO];
+    NSString *_id = [doJsonHelper GetOneText:_dictParas :@"id" :@""];
+    id<BMKOverlay> currentOverLay;
     if (type == 0) {//Circle
         NSDictionary *parma = [doJsonHelper GetOneNode:_dictParas :@"data"];
-        [self addCircleOverlay:parma];
+        currentOverLay = [self addCircleOverlay:parma];
     }
     else if (type == 1)//Polyline
     {
         NSArray *parmas = [doJsonHelper GetOneArray:_dictParas :@"data"];
-        [self addPolylineOverlay:parmas];
+        currentOverLay = [self addPolylineOverlay:parmas];
     }
     else if (type == 2)//Polygon
     {
         NSArray *parmas = [doJsonHelper GetOneArray:_dictParas :@"data"];
-        [self addPolygonOverlay:parmas];
+        currentOverLay = [self addPolygonOverlay:parmas];
     }
     else if (type == 3)//Arc
     {
         NSArray *parmas = [doJsonHelper GetOneArray:_dictParas :@"data"];
-        [self addArcOverlay:parmas];
+        currentOverLay = [self addArcOverlay:parmas];
     }
+    [_dictOverlay setObject:currentOverLay forKey:_id];
 }
 
 - (void)removeAll:(NSArray *)parms
@@ -263,6 +268,7 @@
         [_mapView removeAnnotation:_dictAnnotation[key]];
     }
     [_dictAnnotation removeAllObjects];
+    [_dictOverlay removeAllObjects];
     [_dictImags removeAllObjects];
     [markerInfos removeAllObjects];
 }
@@ -291,6 +297,17 @@
     }
     [_invokeResult SetResultBoolean:flag];
 
+}
+- (void)removeOverlay:(NSArray *)parms
+{
+    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    NSArray *ids = [doJsonHelper GetOneArray:_dictParas :@"ids"];
+    for (NSString *overlayID in ids) {
+        if ([_dictOverlay objectForKey:overlayID] != nil) {
+            [_mapView removeOverlay:[_dictOverlay objectForKey:overlayID]];
+            [_dictOverlay removeObjectForKey:overlayID];
+        }
+    }
 }
 - (void)setCenter:(NSArray *)parms
 {
@@ -485,7 +502,7 @@
 }
 #pragma mark - 私有方法
 //添加圆形遮盖物
-- (void ) addCircleOverlay:(NSDictionary *)parma
+- (id<BMKOverlay>) addCircleOverlay:(NSDictionary *)parma
 {
     NSString *latitude = [doJsonHelper GetOneText:parma :@"latitude" :@""];
     NSString *longitude = [doJsonHelper GetOneText:parma :@"longitude" :@""];
@@ -495,10 +512,11 @@
     coor.longitude = [longitude doubleValue];
     _circle = [BMKCircle circleWithCenterCoordinate:coor radius:[radius doubleValue]];
     [_mapView addOverlay:_circle];
+    return _circle;
 }
 
 // 添加折线遮盖物
-- (void ) addPolylineOverlay:(NSArray *)parmas
+- (id<BMKOverlay> ) addPolylineOverlay:(NSArray *)parmas
 {
     CLLocationCoordinate2D coords[1000] = {0};
     for (int i = 0; i < parmas.count; i ++) {
@@ -515,9 +533,10 @@
                             [NSNumber numberWithInt:0], nil];
     _polyline = [BMKPolyline polylineWithCoordinates:coords count:parmas.count textureIndex:colorIndexs];
     [_mapView addOverlay:_polyline];
+    return _polyline;
 }
 // 添加多边形遮盖物
-- (void) addPolygonOverlay:(NSArray *)parmas
+- (id<BMKOverlay>) addPolygonOverlay:(NSArray *)parmas
 {
     CLLocationCoordinate2D coords[1000] = {0};
     for (int i = 0; i < parmas.count; i ++) {
@@ -529,9 +548,10 @@
     }
     _polygon = [BMKPolygon polygonWithCoordinates:coords count:parmas.count];
     [_mapView addOverlay:_polygon];
+    return _polygon;
 }
 // 添加圆弧遮盖物
-- (void) addArcOverlay:(NSArray *)parmas
+- (id<BMKOverlay>) addArcOverlay:(NSArray *)parmas
 {
     CLLocationCoordinate2D coords[3] = {0};
     for (int i = 0; i < parmas.count; i ++) {
@@ -543,6 +563,7 @@
     }
     _arcline = [BMKArcline arclineWithCoordinates:coords];
     [_mapView addOverlay:_arcline];
+    return _arcline;
 }
 
 //城市内搜索
