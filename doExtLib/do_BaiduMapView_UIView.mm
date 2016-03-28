@@ -26,7 +26,7 @@
 #import <BaiduMapAPI_Search/BMKSearchComponent.h>
 #import <BaiduMapAPI_Cloud/BMKCloudSearchComponent.h>
 #import <objc/runtime.h>
-
+#import "doILogEngine.h"
 
 
 @interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate,BMKPoiSearchDelegate>
@@ -239,6 +239,12 @@
     _lineWidth = [doJsonHelper GetOneInteger:_dictParas :@"width" :1];
     _isDash = [doJsonHelper GetOneBoolean:_dictParas :@"isDash" :NO];
     NSString *_id = [doJsonHelper GetOneText:_dictParas :@"id" :@""];
+    for (NSString * idStr in [_dictOverlay allKeys]) {
+        if ([idStr isEqualToString:_id]) {
+            [[doServiceContainer Instance].LogEngine WriteError:nil :@"不同添加相同的Overlayid"];
+            return;
+        }
+    }
     id<BMKOverlay> currentOverLay;
     if (type == 0) {//Circle
         NSDictionary *parma = [doJsonHelper GetOneNode:_dictParas :@"data"];
