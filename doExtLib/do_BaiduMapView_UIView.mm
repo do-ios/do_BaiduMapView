@@ -441,13 +441,21 @@
     }
     
     NSString * imgPath = [doIOHelper GetLocalFileFullPath:_model.CurrentPage.CurrentApp :_dictImags[_pathID]];
-    UIImage * image = [UIImage imageWithContentsOfFile:imgPath];
-
-    _annotationView.image = image;
-    NSMutableArray *images = [NSMutableArray array];
-    [images addObject:image];
+    if([[NSFileManager defaultManager]fileExistsAtPath:imgPath])
+    {
+        UIImage * image = [UIImage imageWithContentsOfFile:imgPath];
+        
+        _annotationView.image = image;
+        NSMutableArray *images = [NSMutableArray array];
+        [images addObject:image];
+    }
+    else
+    {
+        NSString *errorStr = [NSString stringWithFormat:@"%@文件不存在",_dictImags[_pathID]];
+        NSException *ex = [[NSException alloc]initWithName:@"do_BaiduMapView addMarker" reason:errorStr userInfo:nil];
+        [[doServiceContainer Instance].LogEngine WriteError:ex :@"do_BaiduMapView"];
+    }
     _annotationView.viewID = _pathID;
-//    _annotationView.annotationImages = images;
     _annotationView.draggable = YES;
     return _annotationView;
 }
