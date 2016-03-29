@@ -199,36 +199,38 @@
     doInvokeResult *_invokeResult = [parms objectAtIndex:2];
     for (NSDictionary *parm in parmArray) {
         BMKPointAnnotation *_pointAnnotation = [[BMKPointAnnotation alloc]init];
-        NSString *latitude = [doJsonHelper GetOneText:parm :@"latitude" :@""];
-        NSString *longitude = [doJsonHelper GetOneText:parm :@"longitude" :@""];
+        NSString *latitude = [doJsonHelper GetOneText:parm :@"latitude" :@"39.91574"];
+        NSString *longitude = [doJsonHelper GetOneText:parm :@"longitude" :@"116.403901"];
         NSString *imagePath = [doJsonHelper GetOneText:parm:@"url":@""];
         NSString *info = [doJsonHelper GetOneText:parm:@"info":@""];
-        if (latitude == nil || [latitude isEqualToString:@""] || longitude == nil || [longitude isEqualToString:@""])
-        {
-            [_invokeResult SetResultBoolean:NO];
-            return;
+        CLLocationCoordinate2D coor;
+        coor.latitude = [latitude floatValue];
+        coor.longitude = [longitude floatValue];
+        [_pointAnnotation setTitle:info];
+        [_pointAnnotation setCoordinate:coor];
+        _annotationID = [doJsonHelper GetOneText:parm :@"id" :@""];
+        if ([self isExitKey:_annotationID withArray:[_dictAnnotation allKeys]]) {
+            NSString *errorStr = [NSString stringWithFormat:@"id为%@已经存在",_annotationID];
+            NSException *ex = [[NSException alloc]initWithName:@"do_BaiduMapView addMarkers" reason:errorStr userInfo:nil];
+            [[doServiceContainer Instance].LogEngine WriteError:ex :@"do_BaiduMapView"];
+            continue;
         }
-        else
-        {
-            CLLocationCoordinate2D coor;
-            coor.latitude = [latitude floatValue];
-            coor.longitude = [longitude floatValue];
-            [_pointAnnotation setTitle:info];
-            [_pointAnnotation setCoordinate:coor];
-            _annotationID = [doJsonHelper GetOneText:parm :@"id" :@""];
-
-            for (id key in _dictAnnotation.allKeys) {
-                if ([key isEqualToString:_annotationID]) {
-                    [_mapView removeAnnotation:_dictAnnotation[key]];
-                    break;
-                }
-            }
-            [_dictAnnotation setValue:_pointAnnotation forKey:_annotationID];
-            [_dictImags setValue:imagePath forKey:_annotationID];
-            [_mapView addAnnotation:_pointAnnotation];
-        }
+        [_dictAnnotation setValue:_pointAnnotation forKey:_annotationID];
+        [_dictImags setValue:imagePath forKey:_annotationID];
+        [_mapView addAnnotation:_pointAnnotation];
     }
     [_invokeResult SetResultBoolean:YES];
+}
+- (BOOL)isExitKey:(NSString *)key withArray:(NSArray *)keys
+{
+    BOOL isExit = NO;
+    for (NSString  *temp in keys) {
+        if ([key isEqualToString:temp]) {
+            isExit = YES;
+            break;
+        }
+    }
+    return isExit;
 }
 - (void)addOverlay:(NSArray *)parms
 {
@@ -239,11 +241,11 @@
     _lineWidth = [doJsonHelper GetOneInteger:_dictParas :@"width" :1];
     _isDash = [doJsonHelper GetOneBoolean:_dictParas :@"isDash" :NO];
     NSString *_id = [doJsonHelper GetOneText:_dictParas :@"id" :@""];
-    for (NSString * idStr in [_dictOverlay allKeys]) {
-        if ([idStr isEqualToString:_id]) {
-            [[doServiceContainer Instance].LogEngine WriteError:nil :@"不同添加相同的Overlayid"];
-            return;
-        }
+    if ([self isExitKey:_id withArray:[_dictOverlay allKeys]]) {
+        NSString *errorStr = [NSString stringWithFormat:@"id为%@已经存在",_id];
+        NSException *ex = [[NSException alloc]initWithName:@"do_BaiduMapView addOverlay" reason:errorStr userInfo:nil];
+        [[doServiceContainer Instance].LogEngine WriteError:ex :@"do_BaiduMapView"];
+        return;
     }
     id<BMKOverlay> currentOverLay;
     if (type == 0) {//Circle
@@ -266,6 +268,7 @@
         currentOverLay = [self addArcOverlay:parmas];
     }
     [_dictOverlay setObject:currentOverLay forKey:_id];
+
 }
 
 - (void)removeAll:(NSArray *)parms
