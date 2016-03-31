@@ -47,10 +47,25 @@
     
     NSMutableArray *markerInfos;
     
-    NSString *_fillColor;
-    NSString *_strokecolor;
-    int _lineWidth;
-    BOOL _isDash;
+    NSString *_fillColor0;
+    NSString *_fillColor1;
+    NSString *_fillColor2;
+    NSString *_fillColor3;
+    
+    NSString *_strokecolor0;
+    NSString *_strokecolor1;
+    NSString *_strokecolor2;
+    NSString *_strokecolor3;
+    
+    int _lineWidth0;
+    int _lineWidth1;
+    int _lineWidth2;
+    int _lineWidth3;
+    
+    BOOL _isDash0;
+    BOOL _isDash1;
+    BOOL _isDash2;
+    BOOL _isDash3;
     
     BMKPolyline *_polyline;
     BMKArcline *_arcline;
@@ -236,10 +251,7 @@
 {
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     int type = [doJsonHelper GetOneInteger:_dictParas :@"type" :0];
-    _fillColor = [doJsonHelper GetOneText:_dictParas :@"fillColor" :@""];
-    _strokecolor = [doJsonHelper GetOneText:_dictParas :@"strokeColor" :@""];
-    _lineWidth = [doJsonHelper GetOneInteger:_dictParas :@"width" :1];
-    _isDash = [doJsonHelper GetOneBoolean:_dictParas :@"isDash" :NO];
+    
     NSString *_id = [doJsonHelper GetOneText:_dictParas :@"id" :@""];
     if ([self isExitKey:_id withArray:[_dictOverlay allKeys]]) {
         NSString *errorStr = [NSString stringWithFormat:@"id为%@已经存在",_id];
@@ -249,21 +261,37 @@
     }
     id<BMKOverlay> currentOverLay;
     if (type == 0) {//Circle
+        _fillColor0 = [doJsonHelper GetOneText:_dictParas :@"fillColor" :@""];
+        _strokecolor0 = [doJsonHelper GetOneText:_dictParas :@"strokeColor" :@""];
+        _lineWidth0 = [doJsonHelper GetOneInteger:_dictParas :@"width" :1];
+        _isDash0 = [doJsonHelper GetOneBoolean:_dictParas :@"isDash" :NO];
         NSDictionary *parma = [doJsonHelper GetOneNode:_dictParas :@"data"];
         currentOverLay = [self addCircleOverlay:parma];
     }
     else if (type == 1)//Polyline
     {
+        _fillColor1 = [doJsonHelper GetOneText:_dictParas :@"fillColor" :@""];
+        _strokecolor1 = [doJsonHelper GetOneText:_dictParas :@"strokeColor" :@""];
+        _lineWidth1 = [doJsonHelper GetOneInteger:_dictParas :@"width" :1];
+        _isDash1 = [doJsonHelper GetOneBoolean:_dictParas :@"isDash" :NO];
         NSArray *parmas = [doJsonHelper GetOneArray:_dictParas :@"data"];
         currentOverLay = [self addPolylineOverlay:parmas];
     }
     else if (type == 2)//Polygon
     {
+        _fillColor2 = [doJsonHelper GetOneText:_dictParas :@"fillColor" :@""];
+        _strokecolor2 = [doJsonHelper GetOneText:_dictParas :@"strokeColor" :@""];
+        _lineWidth2 = [doJsonHelper GetOneInteger:_dictParas :@"width" :1];
+        _isDash2 = [doJsonHelper GetOneBoolean:_dictParas :@"isDash" :NO];
         NSArray *parmas = [doJsonHelper GetOneArray:_dictParas :@"data"];
         currentOverLay = [self addPolygonOverlay:parmas];
     }
     else if (type == 3)//Arc
     {
+        _fillColor3 = [doJsonHelper GetOneText:_dictParas :@"fillColor" :@""];
+        _strokecolor3 = [doJsonHelper GetOneText:_dictParas :@"strokeColor" :@""];
+        _lineWidth3 = [doJsonHelper GetOneInteger:_dictParas :@"width" :1];
+        _isDash3 = [doJsonHelper GetOneBoolean:_dictParas :@"isDash" :NO];
         NSArray *parmas = [doJsonHelper GetOneArray:_dictParas :@"data"];
         currentOverLay = [self addArcOverlay:parmas];
     }
@@ -388,37 +416,37 @@
     if ([overlay isKindOfClass:[BMKCircle class]])
     {
         BMKCircleView* circleView = [[BMKCircleView alloc] initWithOverlay:overlay];
-        [doUIModuleHelper GetColorFromString:_fillColor :[UIColor blackColor]];
-        circleView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor :[UIColor colorWithRed:0 green:0 blue:0 alpha:0]];
-        circleView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor :[UIColor blackColor]];
-        circleView.lineWidth = _lineWidth;
-        circleView.lineDash = _isDash;
+        [doUIModuleHelper GetColorFromString:_fillColor0 :[UIColor blackColor]];
+        circleView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor0 :[UIColor colorWithRed:0 green:0 blue:0 alpha:0]];
+        circleView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor0 :[UIColor blackColor]];
+        circleView.lineWidth = _lineWidth0;
+        circleView.lineDash = _isDash0;
         return circleView;
     }
     if ([overlay isKindOfClass:[BMKPolyline class]])
     {
         BMKPolylineView* polylineView = [[BMKPolylineView alloc] initWithOverlay:overlay];
-        polylineView.lineWidth = _lineWidth;
-        polylineView.lineDash = _isDash;
+        polylineView.lineWidth = _lineWidth1;
+        polylineView.lineDash = _isDash1;
         /// 使用分段颜色绘制时，必须设置（内容必须为UIColor）
-        polylineView.colors = [NSArray arrayWithObjects:[doUIModuleHelper GetColorFromString:_strokecolor :[UIColor blackColor]], nil];
+        polylineView.colors = [NSArray arrayWithObjects:[doUIModuleHelper GetColorFromString:_strokecolor1 :[UIColor blackColor]], nil];
     return polylineView;
     }
     
     if ([overlay isKindOfClass:[BMKPolygon class]])
     {
         BMKPolygonView* polygonView = [[BMKPolygonView alloc] initWithOverlay:overlay];
-        polygonView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor :[UIColor blackColor]];
-        polygonView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor :[UIColor colorWithRed:0 green:0 blue:0 alpha:0]];
-        polygonView.lineWidth =_lineWidth;
-        polygonView.lineDash = _isDash;
+        polygonView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor2 :[UIColor blackColor]];
+        polygonView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor2 :[UIColor colorWithRed:0 green:0 blue:0 alpha:0]];
+        polygonView.lineWidth =_lineWidth2;
+        polygonView.lineDash = _isDash2;
         return polygonView;
     }
     if ([overlay isKindOfClass:[BMKArcline class]]) {
         BMKArclineView *arclineView = [[BMKArclineView alloc] initWithArcline:overlay];
-        arclineView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor :[UIColor blackColor]];
-        arclineView.lineDash = _isDash;
-        arclineView.lineWidth = _lineWidth;
+        arclineView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor3 :[UIColor blackColor]];
+        arclineView.lineDash = _isDash3;
+        arclineView.lineWidth = _lineWidth3;
         return arclineView;
     }
     return nil;
