@@ -304,6 +304,9 @@
     for (id key in _dictAnnotation.allKeys) {
         [_mapView removeAnnotation:_dictAnnotation[key]];
     }
+    for (NSString *key in _dictOverlay.allKeys) {
+        [_mapView removeOverlay:_dictOverlay [key]];
+    }
     [_dictAnnotation removeAllObjects];
     [_dictOverlay removeAllObjects];
     [_dictImags removeAllObjects];
