@@ -23,4 +23,5 @@
 - (void)removeMarker:(NSArray *)parms;
 - (void)removeOverlay:(NSArray *)parms;
 - (void)setCenter:(NSArray *)parms;
+- (void)routePlanSearch:(NSArray *)parms;
 @end

@@ -18,18 +18,17 @@
 #import "MyAnimatedAnnotationView.h"
 #import "doIOHelper.h"
 #import "doIPage.h"
-#import <BaiduMapAPI_Base/BMKMapManager.h>
-#import <BaiduMapAPI_Map/BMKMapView.h>
-#import <BaiduMapAPI_Base/BMKGeneralDelegate.h>
-#import <BaiduMapAPI_Map/BMKPointAnnotation.h>
+#import <BaiduMapAPI_Base/BMKBaseComponent.h>
+#import <BaiduMapAPI_Map/BMKMapComponent.h>
 #import <BaiduMapAPI_Utils/BMKUtilsComponent.h>
 #import <BaiduMapAPI_Search/BMKSearchComponent.h>
 #import <BaiduMapAPI_Cloud/BMKCloudSearchComponent.h>
+
 #import <objc/runtime.h>
 #import "doILogEngine.h"
+#import "doRouteAnnotation.h"
 
-
-@interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate,BMKPoiSearchDelegate>
+@interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate,BMKPoiSearchDelegate,BMKRouteSearchDelegate>
 @end
 @implementation do_BaiduMapView_UIView
 {
@@ -43,6 +42,9 @@
     BMKPoiSearch *_poisearch;
     BMKMapManager *_mapManager;
     BMKMapView *_mapView;
+    
+    BMKRouteSearch *_routesearch;
+    
     NSString *_modelString;
     
     NSMutableArray *markerInfos;
@@ -407,6 +409,34 @@
     }
     _callbackName = [parms objectAtIndex:2];
 }
+- (void)routePlanSearch:(NSArray *)parms
+{
+    //异步耗时操作，但是不需要启动线程，框架会自动加载一个后台线程处理这个函数
+    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    //参数字典_dictParas
+    //自己的代码实现
+    NSString *type = [doJsonHelper GetOneText:_dictParas :@"type" :@""];
+    NSString *startCityName = [doJsonHelper GetOneText:_dictParas :@"startCityName" :@""];
+    NSString *endCityName = [doJsonHelper GetOneText:_dictParas :@"endCityName" :@""];
+    NSString *startCitySite = [doJsonHelper GetOneText:_dictParas :@"startCitySite" :@""];
+    NSString *endCitySite = [doJsonHelper GetOneText:_dictParas :@"endCitySite" :@""];
+    _routesearch = [[BMKRouteSearch alloc]init];
+    _routesearch.delegate = self;
+    //开始结束点
+    BMKPlanNode* start = [[BMKPlanNode alloc]init];
+    start.name = startCitySite;
+    start.cityName = startCityName;
+    BMKPlanNode* end = [[BMKPlanNode alloc]init];
+    end.name = endCitySite;
+    end.cityName = endCityName;
+    BMKBaseRoutePlanOption *option = [self routePlanFactory:type];
+    option.from = start;
+    option.to = end;
+    BOOL flag = [self routeSearch:option];
+    if (flag) {
+        NSLog(@"success");
+    }
+}
 
 #pragma mark - BMKMapViewDelegate
 /**
@@ -548,6 +578,286 @@
         [_scritEngine Callback:_callbackName :invokeResult];
     }
 }
+#pragma  mark - 线路检索代理
+//步行线路检索
+- (void)onGetWalkingRouteResult:(BMKRouteSearch*)searcher result:(BMKWalkingRouteResult*)result errorCode:(BMKSearchErrorCode)error
+{
+    NSArray* array = [NSArray arrayWithArray:_mapView.annotations];
+    [_mapView removeAnnotations:array];
+    array = [NSArray arrayWithArray:_mapView.overlays];
+    [_mapView removeOverlays:array];
+    if (error == BMK_SEARCH_NO_ERROR) {
+        BMKWalkingRouteLine* plan = (BMKWalkingRouteLine*)[result.routes objectAtIndex:0];
+        NSInteger size = [plan.steps count];
+        int planPointCounts = 0;
+        for (int i = 0; i < size; i++) {
+            BMKWalkingStep* transitStep = [plan.steps objectAtIndex:i];
+            if(i==0){
+                doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+                item.coordinate = plan.starting.location;
+                item.title = @"起点";
+                item.type = 0;
+                [_mapView addAnnotation:item]; // 添加起点标注
+                
+            }else if(i==size-1){
+                doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+                item.coordinate = plan.terminal.location;
+                item.title = @"终点";
+                item.type = 1;
+                [_mapView addAnnotation:item]; // 添加起点标注
+            }
+            //添加annotation节点
+            doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+            item.coordinate = transitStep.entrace.location;
+            item.title = transitStep.entraceInstruction;
+            item.degree = transitStep.direction * 30;
+            item.type = 4;
+            [_mapView addAnnotation:item];
+            
+            //轨迹点总数累计
+            planPointCounts += transitStep.pointsCount;
+        }
+        
+        //轨迹点
+        BMKMapPoint * temppoints = new BMKMapPoint[planPointCounts];
+        int i = 0;
+        for (int j = 0; j < size; j++) {
+            BMKWalkingStep* transitStep = [plan.steps objectAtIndex:j];
+            int k=0;
+            for(k=0;k<transitStep.pointsCount;k++) {
+                temppoints[i].x = transitStep.points[k].x;
+                temppoints[i].y = transitStep.points[k].y;
+                i++;
+            }
+            
+        }
+        // 通过points构建BMKPolyline
+        BMKPolyline* polyLine = [BMKPolyline polylineWithPoints:temppoints count:planPointCounts];
+        [_mapView addOverlay:polyLine]; // 添加路线overlay
+        delete []temppoints;
+        [self mapViewFitPolyLine:polyLine];
+    }
+}
+//骑行检索
+- (void)onGetRidingRouteResult:(BMKRouteSearch *)searcher result:(BMKRidingRouteResult *)result errorCode:(BMKSearchErrorCode)error {
+    NSLog(@"onGetRidingRouteResult error:%d", (int)error);
+    NSArray* array = [NSArray arrayWithArray:_mapView.annotations];
+    [_mapView removeAnnotations:array];
+    array = [NSArray arrayWithArray:_mapView.overlays];
+    [_mapView removeOverlays:array];
+    if (error == BMK_SEARCH_NO_ERROR) {
+        BMKRidingRouteLine* plan = (BMKRidingRouteLine*)[result.routes objectAtIndex:0];
+        NSInteger size = [plan.steps count];
+        int planPointCounts = 0;
+        for (int i = 0; i < size; i++) {
+            BMKRidingStep* transitStep = [plan.steps objectAtIndex:i];
+            if (i == 0) {
+                doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+                item.coordinate = plan.starting.location;
+                item.title = @"起点";
+                item.type = 0;
+                [_mapView addAnnotation:item]; // 添加起点标注
+            } else if(i==size-1){
+                doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+                item.coordinate = plan.terminal.location;
+                item.title = @"终点";
+                item.type = 1;
+                [_mapView addAnnotation:item]; // 添加起点标注
+            }
+            //添加annotation节点
+            doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+            item.coordinate = transitStep.entrace.location;
+            item.title = transitStep.instruction;
+            item.degree = (int)transitStep.direction * 30;
+            item.type = 4;
+            [_mapView addAnnotation:item];
+            
+            //轨迹点总数累计
+            planPointCounts += transitStep.pointsCount;
+        }
+        
+        //轨迹点
+        BMKMapPoint * temppoints = new BMKMapPoint[planPointCounts];
+        int i = 0;
+        for (int j = 0; j < size; j++) {
+            BMKRidingStep* transitStep = [plan.steps objectAtIndex:j];
+            int k=0;
+            for(k=0;k<transitStep.pointsCount;k++) {
+                temppoints[i].x = transitStep.points[k].x;
+                temppoints[i].y = transitStep.points[k].y;
+                i++;
+            }
+            
+        }
+        // 通过points构建BMKPolyline
+        BMKPolyline* polyLine = [BMKPolyline polylineWithPoints:temppoints count:planPointCounts];
+        [_mapView addOverlay:polyLine]; // 添加路线overlay
+        delete []temppoints;
+        [self mapViewFitPolyLine:polyLine];
+    }
+}
+- (void)onGetDrivingRouteResult:(BMKRouteSearch*)searcher result:(BMKDrivingRouteResult*)result errorCode:(BMKSearchErrorCode)error
+{
+    NSArray* array = [NSArray arrayWithArray:_mapView.annotations];
+    [_mapView removeAnnotations:array];
+    array = [NSArray arrayWithArray:_mapView.overlays];
+    [_mapView removeOverlays:array];
+    if (error == BMK_SEARCH_NO_ERROR) {
+        BMKDrivingRouteLine* plan = (BMKDrivingRouteLine*)[result.routes objectAtIndex:0];
+        // 计算路线方案中的路段数目
+        NSInteger size = [plan.steps count];
+        int planPointCounts = 0;
+        for (int i = 0; i < size; i++) {
+            BMKDrivingStep* transitStep = [plan.steps objectAtIndex:i];
+            if(i==0){
+                doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+                item.coordinate = plan.starting.location;
+                item.title = @"起点";
+                item.type = 0;
+                [_mapView addAnnotation:item]; // 添加起点标注
+                
+            }else if(i==size-1){
+                doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+                item.coordinate = plan.terminal.location;
+                item.title = @"终点";
+                item.type = 1;
+                [_mapView addAnnotation:item]; // 添加起点标注
+            }
+            //添加annotation节点
+            doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+            item.coordinate = transitStep.entrace.location;
+            item.title = transitStep.entraceInstruction;
+            item.degree = transitStep.direction * 30;
+            item.type = 4;
+            [_mapView addAnnotation:item];
+            
+            NSLog(@"%@   %@    %@", transitStep.entraceInstruction, transitStep.exitInstruction, transitStep.instruction);
+            
+            //轨迹点总数累计
+            planPointCounts += transitStep.pointsCount;
+        }
+        // 添加途经点
+        if (plan.wayPoints) {
+            for (BMKPlanNode* tempNode in plan.wayPoints) {
+                doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+                item.coordinate = tempNode.pt;
+                item.type = 5;
+                item.title = tempNode.name;
+                [_mapView addAnnotation:item];
+            }
+        }
+        //轨迹点
+        BMKMapPoint * temppoints = new BMKMapPoint[planPointCounts];
+        int i = 0;
+        for (int j = 0; j < size; j++) {
+            BMKDrivingStep* transitStep = [plan.steps objectAtIndex:j];
+            int k=0;
+            for(k=0;k<transitStep.pointsCount;k++) {
+                temppoints[i].x = transitStep.points[k].x;
+                temppoints[i].y = transitStep.points[k].y;
+                i++;
+            }
+            
+        }
+        // 通过points构建BMKPolyline
+        BMKPolyline* polyLine = [BMKPolyline polylineWithPoints:temppoints count:planPointCounts];
+        [_mapView addOverlay:polyLine]; // 添加路线overlay
+        delete []temppoints;
+        [self mapViewFitPolyLine:polyLine];
+    }
+}
+/**
+ *返回公共交通路线检索结果（new）
+ *@param searcher 搜索对象
+ *@param result 搜索结果，类型为BMKMassTransitRouteResult
+ *@param error 错误号，@see BMKSearchErrorCode
+ */
+- (void)onGetMassTransitRouteResult:(BMKRouteSearch*)searcher result:(BMKMassTransitRouteResult*)result errorCode:(BMKSearchErrorCode)error
+{
+    NSLog(@"onGetMassTransitRouteResult error:%d", (int)error);
+    NSArray* array = [NSArray arrayWithArray:_mapView.annotations];
+    [_mapView removeAnnotations:array];
+    array = [NSArray arrayWithArray:_mapView.overlays];
+    [_mapView removeOverlays:array];
+    if (error == BMK_SEARCH_NO_ERROR) {
+        BMKMassTransitRouteLine* routeLine = (BMKMassTransitRouteLine*)[result.routes objectAtIndex:0];
+        
+        BOOL startCoorIsNull = YES;
+        CLLocationCoordinate2D startCoor;//起点经纬度
+        CLLocationCoordinate2D endCoor;//终点经纬度
+        
+        NSInteger size = [routeLine.steps count];
+        NSInteger planPointCounts = 0;
+        for (NSInteger i = 0; i < size; i++) {
+            BMKMassTransitStep* transitStep = [routeLine.steps objectAtIndex:i];
+            for (BMKMassTransitSubStep *subStep in transitStep.steps) {
+                //添加annotation节点
+                doRouteAnnotation* item = [[doRouteAnnotation alloc]init];
+                item.coordinate = subStep.entraceCoor;
+                item.title = subStep.instructions;
+                item.type = 2;
+                [_mapView addAnnotation:item];
+                
+                if (startCoorIsNull) {
+                    startCoor = subStep.entraceCoor;
+                    startCoorIsNull = NO;
+                }
+                endCoor = subStep.exitCoor;
+                
+                //轨迹点总数累计
+                planPointCounts += subStep.pointsCount;
+                
+                //steps中是方案还是子路段，YES:steps是BMKMassTransitStep的子路段（A到B需要经过多个steps）;NO:steps是多个方案（A到B有多个方案选择）
+                if (transitStep.isSubStep == NO) {//是子方案，只取第一条方案
+                    break;
+                }
+                else {
+                    //是子路段，需要完整遍历transitStep.steps
+                }
+            }
+        }
+        
+        //添加起点标注
+        doRouteAnnotation* startAnnotation = [[doRouteAnnotation alloc]init];
+        startAnnotation.coordinate = startCoor;
+        startAnnotation.title = @"起点";
+        startAnnotation.type = 0;
+        [_mapView addAnnotation:startAnnotation]; // 添加起点标注
+        //添加终点标注
+        doRouteAnnotation* endAnnotation = [[doRouteAnnotation alloc]init];
+        endAnnotation.coordinate = endCoor;
+        endAnnotation.title = @"终点";
+        endAnnotation.type = 1;
+        [_mapView addAnnotation:endAnnotation]; // 添加起点标注
+        
+        //轨迹点
+        BMKMapPoint * temppoints = new BMKMapPoint[planPointCounts];
+        NSInteger index = 0;
+        for (BMKMassTransitStep* transitStep in routeLine.steps) {
+            for (BMKMassTransitSubStep *subStep in transitStep.steps) {
+                for (NSInteger i = 0; i < subStep.pointsCount; i++) {
+                    temppoints[index].x = subStep.points[i].x;
+                    temppoints[index].y = subStep.points[i].y;
+                    index++;
+                }
+                
+                //steps中是方案还是子路段，YES:steps是BMKMassTransitStep的子路段（A到B需要经过多个steps）;NO:steps是多个方案（A到B有多个方案选择）
+                if (transitStep.isSubStep == NO) {//是子方案，只取第一条方案
+                    break;
+                }
+                else {
+                    //是子路段，需要完整遍历transitStep.steps
+                }
+            }
+        }
+        
+        // 通过points构建BMKPolyline
+        BMKPolyline* polyLine = [BMKPolyline polylineWithPoints:temppoints count:planPointCounts];
+        [_mapView addOverlay:polyLine]; // 添加路线overlay
+        delete []temppoints;
+        [self mapViewFitPolyLine:polyLine];
+    }
+}
 #pragma mark - 私有方法
 //添加圆形遮盖物
 - (id<BMKOverlay>) addCircleOverlay:(NSDictionary *)parma
@@ -647,8 +957,75 @@
     option.radius = [radius floatValue];
     return option;
 }
-
-
+- (BMKBaseRoutePlanOption *)routePlanFactory:(NSString *)type
+{
+    BMKBaseRoutePlanOption *option;
+    if ([[type lowercaseString] isEqualToString:@"bus"]) {
+        option = [[BMKMassTransitRoutePlanOption alloc]init];
+    }
+    else if([[type lowercaseString] isEqualToString:@"ride"])
+    {
+        option = [[BMKRidingRoutePlanOption alloc]init];
+    }
+    else if([[type lowercaseString] isEqualToString:@"walk"])
+    {
+        option = [[BMKWalkingRoutePlanOption alloc]init];
+    }
+    else if([[type lowercaseString] isEqualToString:@"drive"])
+    {
+        option = [[BMKDrivingRoutePlanOption alloc]init];
+    }
+    return option;
+}
+- (BOOL)routeSearch:(BMKBaseRoutePlanOption *)option
+{
+    if ([option isKindOfClass:[BMKDrivingRoutePlanOption class]]) {
+        return  [_routesearch drivingSearch:(BMKDrivingRoutePlanOption *)option];
+    }
+    else if ([option isKindOfClass:[BMKWalkingRoutePlanOption class]])
+    {
+        return  [_routesearch walkingSearch:(BMKWalkingRoutePlanOption *)option];
+    }
+    else if ([option isKindOfClass:[BMKRidingRoutePlanOption class]])
+    {
+        return  [_routesearch ridingSearch:(BMKRidingRoutePlanOption *)option];
+    }
+    else if ([option isKindOfClass:[BMKMassTransitRoutePlanOption class]])
+    {
+        return [_routesearch massTransitSearch:(BMKMassTransitRoutePlanOption*)option];
+    }
+    return NO;
+}
+//根据polyline设置地图范围
+- (void)mapViewFitPolyLine:(BMKPolyline *) polyLine {
+    CGFloat ltX, ltY, rbX, rbY;
+    if (polyLine.pointCount < 1) {
+        return;
+    }
+    BMKMapPoint pt = polyLine.points[0];
+    ltX = pt.x, ltY = pt.y;
+    rbX = pt.x, rbY = pt.y;
+    for (int i = 1; i < polyLine.pointCount; i++) {
+        BMKMapPoint pt = polyLine.points[i];
+        if (pt.x < ltX) {
+            ltX = pt.x;
+        }
+        if (pt.x > rbX) {
+            rbX = pt.x;
+        }
+        if (pt.y > ltY) {
+            ltY = pt.y;
+        }
+        if (pt.y < rbY) {
+            rbY = pt.y;
+        }
+    }
+    BMKMapRect rect;
+    rect.origin = BMKMapPointMake(ltX , ltY);
+    rect.size = BMKMapSizeMake(rbX - ltX, rbY - ltY);
+    [_mapView setVisibleMapRect:rect];
+    _mapView.zoomLevel = _mapView.zoomLevel - 0.3;
+}
 #pragma mark - doIUIModuleView协议方法（必须）<大部分情况不需修改>
 - (BOOL) OnPropertiesChanging: (NSMutableDictionary *) _changedValues
 {
