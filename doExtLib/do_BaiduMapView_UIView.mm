@@ -464,9 +464,29 @@
     if ([overlay isKindOfClass:[BMKPolyline class]])
     {
         BMKPolylineView* polylineView = [[BMKPolylineView alloc] initWithOverlay:overlay];
-        polylineView.lineWidth = _lineWidth1;
+        if (_lineWidth1 == 0) {
+            polylineView.lineWidth = 3;
+        }
+        else
+        {
+            polylineView.lineWidth = _lineWidth1;
+        }
         polylineView.lineDash = _isDash1;
         /// 使用分段颜色绘制时，必须设置（内容必须为UIColor）
+        if (!_fillColor1) {
+            polylineView.fillColor = [[UIColor alloc] initWithRed:0 green:1 blue:1 alpha:1];
+        }
+        else
+        {
+            polylineView.fillColor = [doUIModuleHelper GetColorFromString:_fillColor1 :[UIColor colorWithRed:0 green:0 blue:0 alpha:0]];
+        }
+        if (!_strokecolor1) {
+            polylineView.strokeColor = [[UIColor alloc] initWithRed:0 green:0 blue:1 alpha:0.7];
+        }
+        else
+        {
+            polylineView.strokeColor = [doUIModuleHelper GetColorFromString:_strokecolor1 :[UIColor blackColor]];
+        }
         polylineView.colors = [NSArray arrayWithObjects:[doUIModuleHelper GetColorFromString:_strokecolor1 :[UIColor blackColor]], nil];
         return polylineView;
     }
