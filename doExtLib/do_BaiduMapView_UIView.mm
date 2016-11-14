@@ -27,6 +27,11 @@
 #import <objc/runtime.h>
 #import "doILogEngine.h"
 #import "doRouteAnnotation.h"
+#import "UIImage+doRotate.h"
+
+#define MYBUNDLE_NAME @ "mapapi.bundle"
+#define MYBUNDLE_PATH [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent: MYBUNDLE_NAME]
+#define MYBUNDLE [NSBundle bundleWithPath: MYBUNDLE_PATH]
 
 @interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate,BMKPoiSearchDelegate,BMKRouteSearchDelegate>
 @end
@@ -104,7 +109,7 @@
     _dictAnnotation = [[NSMutableDictionary alloc]init];
     _dictOverlay = [NSMutableDictionary dictionary];
     _dictImags = [[NSMutableDictionary alloc]init];
-
+    
     NSString *mapType = [(doUIModule *)_model GetProperty:@"mapType"].DefaultValue;
     
     [_model SetPropertyValue:@"mapType" :mapType];
@@ -191,7 +196,7 @@
 {
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     //参数字典_dictParas
-//    id<doIScriptEngine> _scritEngine = [parms objectAtIndex:1];
+    //    id<doIScriptEngine> _scritEngine = [parms objectAtIndex:1];
     //自己的代码实现
     NSString *startPoint = [doJsonHelper GetOneText:_dictParas :@"startPoint" :@""];
     NSString *endPoint = [doJsonHelper GetOneText:_dictParas :@"endPoint" :@""];
@@ -298,7 +303,7 @@
         currentOverLay = [self addArcOverlay:parmas];
     }
     [_dictOverlay setObject:currentOverLay forKey:_id];
-
+    
 }
 
 - (void)removeAll:(NSArray *)parms
@@ -338,7 +343,7 @@
         }
     }
     [_invokeResult SetResultBoolean:flag];
-
+    
 }
 - (void)removeOverlay:(NSArray *)parms
 {
@@ -463,7 +468,7 @@
         polylineView.lineDash = _isDash1;
         /// 使用分段颜色绘制时，必须设置（内容必须为UIColor）
         polylineView.colors = [NSArray arrayWithObjects:[doUIModuleHelper GetColorFromString:_strokecolor1 :[UIColor blackColor]], nil];
-    return polylineView;
+        return polylineView;
     }
     
     if ([overlay isKindOfClass:[BMKPolygon class]])
@@ -487,6 +492,9 @@
 
 -(BMKAnnotationView *)mapView:(BMKMapView *)mapView viewForAnnotation:(id<BMKAnnotation>)annotation
 {
+    if ([annotation isKindOfClass:[doRouteAnnotation class]]) {
+        return [(doRouteAnnotation*)annotation getRouteAnnotationView:mapView];
+    }
     NSString *AnnotationViewID = @"AnimatedAnnotation";
     MyAnimatedAnnotationView *_annotationView = nil;
     if (_annotationView == nil) {
@@ -520,18 +528,21 @@
     _annotationView.draggable = YES;
     return _annotationView;
 }
+
 - (void)mapView:(BMKMapView *)mapView didSelectAnnotationView:(BMKAnnotationView *)view
 {
-    NSMutableDictionary *node ;
-    NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
-    for (NSDictionary *dictTmp in markerInfos) {
-        if ([[dictTmp objectForKey:@"id"]isEqualToString:viewID]) {
-            node = [NSMutableDictionary dictionaryWithDictionary:dictTmp];
+    if ([view isKindOfClass:[MyAnimatedAnnotationView class]]) {
+        NSMutableDictionary *node ;
+        NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
+        for (NSDictionary *dictTmp in markerInfos) {
+            if ([[dictTmp objectForKey:@"id"]isEqualToString:viewID]) {
+                node = [NSMutableDictionary dictionaryWithDictionary:dictTmp];
+            }
         }
+        doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
+        [_invokeResult SetResultNode:node];
+        [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
     }
-    doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
-    [_invokeResult SetResultNode:node];
-    [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
 }
 - (void)mapView:(BMKMapView *)mapView annotationViewForBubble:(BMKAnnotationView *)view;
 {
