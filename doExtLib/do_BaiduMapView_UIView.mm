@@ -566,16 +566,19 @@
 }
 - (void)mapView:(BMKMapView *)mapView annotationViewForBubble:(BMKAnnotationView *)view;
 {
-    NSMutableDictionary *node ;
-    NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
-    for (NSDictionary *dictTmp in markerInfos) {
-        if ([[dictTmp objectForKey:@"id"]isEqualToString:viewID]) {
-            node = [NSMutableDictionary dictionaryWithDictionary:dictTmp];
+    if ([view isKindOfClass:[MyAnimatedAnnotationView class]]) {
+        NSMutableDictionary *node ;
+        NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
+        for (NSDictionary *dictTmp in markerInfos) {
+            if ([[dictTmp objectForKey:@"id"]isEqualToString:viewID]) {
+                node = [NSMutableDictionary dictionaryWithDictionary:dictTmp];
+            }
         }
+        doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
+        [_invokeResult SetResultNode:node];
+        [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
     }
-    doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
-    [_invokeResult SetResultNode:node];
-    [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
+    
 }
 - (void)mapView:(BMKMapView *)mapView onClickedMapBlank:(CLLocationCoordinate2D)coordinate
 {
