@@ -509,7 +509,22 @@
     }
     return nil;
 }
-
+/**
+ *地图区域改变完成后会调用此接口
+ *@param mapview 地图View
+ *@param animated 是否动画
+ */
+- (void)mapView:(BMKMapView *)mapView regionDidChangeAnimated:(BOOL)animated
+{
+    CGFloat latitude = mapView.region.center.latitude;
+    CGFloat longitude = mapView.region.center.longitude;
+    NSMutableDictionary *node = [NSMutableDictionary dictionary];
+    [node setObject:@(latitude)forKey:@"latitude"];
+    [node setObject:@(longitude) forKey:@"longitude"];
+    doInvokeResult *invokeResult = [[doInvokeResult alloc]init];
+    [invokeResult SetResultNode:node];
+    [_model.EventCenter FireEvent:@"regionChange" :invokeResult];
+}
 -(BMKAnnotationView *)mapView:(BMKMapView *)mapView viewForAnnotation:(id<BMKAnnotation>)annotation
 {
     if ([annotation isKindOfClass:[doRouteAnnotation class]]) {
