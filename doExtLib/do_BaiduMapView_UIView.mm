@@ -523,6 +523,7 @@
     [node setObject:@(longitude) forKey:@"longitude"];
     doInvokeResult *invokeResult = [[doInvokeResult alloc]init];
     [invokeResult SetResultNode:node];
+    [_model SetPropertyValue:@"zoomLevel" :[NSString stringWithFormat:@"%f",mapView.zoomLevel]];
     [_model.EventCenter FireEvent:@"regionChange" :invokeResult];
 }
 -(BMKAnnotationView *)mapView:(BMKMapView *)mapView viewForAnnotation:(id<BMKAnnotation>)annotation
