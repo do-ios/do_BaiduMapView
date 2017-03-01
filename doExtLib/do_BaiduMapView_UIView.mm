@@ -571,8 +571,10 @@
         NSMutableDictionary *node ;
         NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
         for (NSDictionary *dictTmp in markerInfos) {
-            if ([[dictTmp objectForKey:@"id"]isEqualToString:viewID]) {
-                node = [NSMutableDictionary dictionaryWithDictionary:dictTmp];
+            if ([[dictTmp objectForKey:@"id"] isKindOfClass:[NSString class]]) {
+                if ([[dictTmp objectForKey:@"id"]isEqualToString:viewID]) {
+                    node = [NSMutableDictionary dictionaryWithDictionary:dictTmp];
+                }
             }
         }
         doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
