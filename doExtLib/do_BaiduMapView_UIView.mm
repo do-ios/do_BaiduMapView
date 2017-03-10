@@ -33,7 +33,7 @@
 #define MYBUNDLE_PATH [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent: MYBUNDLE_NAME]
 #define MYBUNDLE [NSBundle bundleWithPath: MYBUNDLE_PATH]
 
-@interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate,BMKPoiSearchDelegate,BMKRouteSearchDelegate>
+@interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate,BMKPoiSearchDelegate,BMKRouteSearchDelegate,BMKOfflineMapDelegate>
 @end
 @implementation do_BaiduMapView_UIView
 {
@@ -47,6 +47,7 @@
     BMKPoiSearch *_poisearch;
     BMKMapManager *_mapManager;
     BMKMapView *_mapView;
+    BMKOfflineMap *_offlineMap;
     
     BMKRouteSearch *_routesearch;
     
@@ -83,6 +84,8 @@
 //引用Model对象
 - (void) LoadView: (doUIModule *) _doUIModule
 {
+    _offlineMap = [[BMKOfflineMap alloc] init];
+    _offlineMap.delegate = self;
     _model = (typeof(_model)) _doUIModule;
     NSString *_BMKMapKey = [[doServiceContainer Instance].ModuleExtManage GetThirdAppKey:@"baiduMapAppKey.plist" :@"baiduMapViewAppKey" ];
     
@@ -443,6 +446,95 @@
     }
 }
 
+- (void)getHotCityList:(NSArray *)parms
+{
+//    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    //参数字典_dictParas
+    id<doIScriptEngine> _scritEngineHot = [parms objectAtIndex:1];
+    //自己的代码实现
+    
+    _callbackName = [parms objectAtIndex:2];
+    //_invokeResult设置返回值
+    if (!_offlineMap) {
+        _offlineMap = [[BMKOfflineMap alloc] init];
+        _offlineMap.delegate = self;
+    }
+    NSArray *cities = [_offlineMap getHotCityList];
+    NSMutableArray *hotCityList = [NSMutableArray array];
+    for (BMKOLSearchRecord *record in cities) {
+        NSMutableDictionary *node = [NSMutableDictionary dictionary];
+        [node setObject:@(record.cityID) forKey:@"cityID"];
+        [node setObject:record.cityName forKey:@"cityName"];
+        [node setObject:@(record.size) forKey:@"size"];
+        [hotCityList addObject:node];
+    }
+    doInvokeResult *_invokeResult = [[doInvokeResult alloc]init:_model.UniqueKey];
+    [_invokeResult SetResultArray:hotCityList];
+    [_scritEngineHot Callback:_callbackName :_invokeResult];
+}
+- (void)pauseDownload:(NSArray *)parms
+{
+    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    //参数字典_dictParas
+//    id<doIScriptEngine> _scritEngine = [parms objectAtIndex:1];
+    //自己的代码实现
+    doInvokeResult *_invokeResult = [parms objectAtIndex:2];
+    int cityID = [doJsonHelper GetOneInteger:_dictParas :@"cityID" :0];
+    //_invokeResult设置返回值
+    BOOL success = NO;
+    if (!_offlineMap) {
+        _offlineMap = [[BMKOfflineMap alloc] init];
+        success = [_offlineMap pause:cityID];
+    }
+    [_invokeResult SetResultBoolean:success];
+}
+- (void)startDownload:(NSArray *)parms
+{
+    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    //参数字典_dictParas
+    _scritEngine = [parms objectAtIndex:1];
+    _callbackName = [parms objectAtIndex:2];
+    //自己的代码实现
+    int cityID = [doJsonHelper GetOneInteger:_dictParas :@"cityID" :0];
+    //_invokeResult设置返回值
+    if (!_offlineMap) {
+        _offlineMap = [[BMKOfflineMap alloc] init];
+        _offlineMap.delegate = self;
+    }
+    BOOL success = [_offlineMap start:cityID];
+    doInvokeResult *_invokeResult = [[doInvokeResult alloc]init:_model.UniqueKey];
+    [_invokeResult SetResultBoolean:success];
+    [_scritEngine Callback:_callbackName :_invokeResult];
+}
+- (void)removeDownload:(NSArray *)parms
+{
+    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    //参数字典_dictParas
+//    id<doIScriptEngine> _scritEngine = [parms objectAtIndex:1];
+    //自己的代码实现
+    doInvokeResult *_invokeResult = [parms objectAtIndex:2];
+    int cityID = [doJsonHelper GetOneInteger: _dictParas :@"cityID" :0];
+    //_invokeResult设置返回值
+    BOOL success = NO;
+    if (_offlineMap) {
+         success = [_offlineMap remove:cityID];
+    }
+    [_invokeResult SetResultBoolean:success];
+}
+#pragma mark - 离线地图代理
+- (void)onGetOfflineMapState:(int)type withState:(int)state
+{
+    NSMutableDictionary *node = [NSMutableDictionary dictionary];
+    if (type == TYPE_OFFLINE_UPDATE) {
+        BMKOLUpdateElement *element = [_offlineMap getUpdateInfo:state];
+        [node setObject:@(element.cityID) forKey:@"cityID"];
+        [node setObject:element.cityName forKey:@"cityName"];
+        [node setObject:@(element.ratio) forKey:@"ratio"];
+        doInvokeResult *invoke = [[doInvokeResult alloc]init:_model.UniqueKey];
+        [invoke SetResultNode:node];
+        [_model.EventCenter FireEvent:@"download" :invoke];
+    }
+}
 #pragma mark - BMKMapViewDelegate
 /**
  *查找指定overlay对应的View，如果该View尚未创建，返回nil
@@ -582,22 +674,22 @@
         [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
     }
 }
-- (void)mapView:(BMKMapView *)mapView annotationViewForBubble:(BMKAnnotationView *)view;
-{
-    if ([view isKindOfClass:[MyAnimatedAnnotationView class]]) {
-        NSMutableDictionary *node ;
-        NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
-        for (NSDictionary *dictTmp in markerInfos) {
-            if ([[dictTmp objectForKey:@"id"]isEqualToString:viewID]) {
-                node = [NSMutableDictionary dictionaryWithDictionary:dictTmp];
-            }
-        }
-        doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
-        [_invokeResult SetResultNode:node];
-        [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
-    }
-    
-}
+//- (void)mapView:(BMKMapView *)mapView annotationViewForBubble:(BMKAnnotationView *)view;
+//{
+//    if ([view isKindOfClass:[MyAnimatedAnnotationView class]]) {
+//        NSMutableDictionary *node ;
+//        NSString *viewID = ((MyAnimatedAnnotationView *)view).viewID;
+//        for (NSDictionary *dictTmp in markerInfos) {
+//            if ([[dictTmp objectForKey:@"id"]isEqualToString:viewID]) {
+//                node = [NSMutableDictionary dictionaryWithDictionary:dictTmp];
+//            }
+//        }
+//        doInvokeResult* _invokeResult = [[doInvokeResult alloc]init];
+//        [_invokeResult SetResultNode:node];
+//        [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
+//    }
+//    
+//}
 - (void)mapView:(BMKMapView *)mapView onClickedMapBlank:(CLLocationCoordinate2D)coordinate
 {
     doInvokeResult *invokeResult = [[doInvokeResult alloc]init];

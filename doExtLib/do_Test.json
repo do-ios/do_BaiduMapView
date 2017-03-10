@@ -6,9 +6,9 @@
     "Name": "百度地图",
     "Version": "Internal",
     "Description": "集成百度地图，实现基本的地图功能，包括设置中心点，添加标记等",
-    "Icon": "https://do-store.oss-cn-beijing.aliyuncs.com/D/20160121/do_BaiduMapView/百度全景地图.jpg",
+    "Icon": "https://deviceone.blob.core.chinacloudapi.cn/component/D/20160121/do_BaiduMapView/百度全景地图.jpg",
     "BBS": "",
-    "Keyword": "",
+    "Keyword": "其它类型",
     "IOS": {
         "Support": 1,
         "MinVersion": "7.0"
@@ -31,6 +31,21 @@
     },
     "Properties": [
                    {
+                   "ID": "mapScene",
+                   "Name": "地图场景",
+                   "Type": "Number",
+                   "Type_JavaScript": "Number",
+                   "DefaultValue": "0",
+                   "EditType": "0",
+                   "Group": "",
+                   "Description": "地图场景，场景目前支持两种：0表示当前同一个page里面包含VideoView等视频组件的场景（解决会互相覆盖的问题），1表示不包含，1的渲染效果比0好，若不同时在地图页面使用视频组件，建议选1。iOS平台不支持",
+                   "Design": {
+                   "Type": "UInteger",
+                   "Data": []
+                   },
+                   "Deprecated": false
+                   },
+                   {
                    "ID": "mapType",
                    "Name": "地图类型",
                    "Type": "String",
@@ -51,7 +66,8 @@
                             "value": "卫星地图"
                             }
                             ]
-                   }
+                   },
+                   "Deprecated": false
                    },
                    {
                    "ID": "zoomLevel",
@@ -65,23 +81,42 @@
                    "Design": {
                    "Type": "UInteger",
                    "Data": []
-                   }
+                   },
+                   "Deprecated": false
                    }
                    ],
     "Events": [
+               {
+               "ID": "download",
+               "Description": "下载离线地图触发的事件",
+               "ReturnType": "Node",
+               "ReturnType_JavaScript": "Node",
+               "ReturnDesc": "{'cityID':城市id,'cityName':城市名称,'ratio':下载进度（0~100）100表示下载完成}",
+               "Deprecated": false
+               },
+               {
+               "ID": "regionChange",
+               "Description": "地图区域改变完成后会触发，返回地图区域的中心点坐标",
+               "ReturnType": "Node",
+               "ReturnType_JavaScript": "Node",
+               "ReturnDesc": "{latitude:'', longitude:''}",
+               "Deprecated": false
+               },
                {
                "ID": "touchMap",
                "Description": "点击地图时触发",
                "ReturnType": "Node",
                "ReturnType_JavaScript": "Node",
-               "ReturnDesc": "返回当前点击的位置坐标{\"latitude\":\"纬度\",\"longitude\":\"经度\"}"
+               "ReturnDesc": "返回当前点击的位置坐标{\"latitude\":\"纬度\",\"longitude\":\"经度\"}",
+               "Deprecated": false
                },
                {
                "ID": "touchMarker",
                "Description": "点击标记时触发，iOS平台只有第一次点击mark会触发该事件，之后需要点击弹出的缩略图触发",
                "ReturnType": "Node",
                "ReturnType_JavaScript": "Node",
-               "ReturnDesc": "[{\"id\":\"标记ID,用户自定义标记唯一ID\",\"latitude\":\"纬度\",\"longitude\":\"经度\",\"url\":\"缩略图地址\",\"info\":\"描述信息\"}]"
+               "ReturnDesc": "",
+               "Deprecated": false
                }
                ],
     "syncMethodes": [
@@ -100,9 +135,11 @@
                                "Type_JavaScript": "Node",
                                "Required": 1,
                                "DefaultValue": "",
-                               "Description": "[{\"id\":\"标记ID,用户自定义标记唯一ID\",\"latitude\":\"纬度\",\"longitude\":\"经度\",\"url\":\"缩略图地址\",\"info\":\"描述信息\"},...]，其中id必须唯一"
+                               "Description": "[{\"id\":\"标记ID，用户自定义标记唯一ID，是字符串类型\",\"latitude\":\"纬度\",\"longitude\":\"经度\",\"url\":\"缩略图地址\",\"info\":\"描述信息\"},...]，其中id必须唯一",
+                               "Deprecated": false
                                }
-                               ]
+                               ],
+                     "Deprecated": false
                      },
                      {
                      "ID": "addOverlay",
@@ -119,7 +156,8 @@
                                "Type_JavaScript": "Number",
                                "Required": 1,
                                "DefaultValue": "",
-                               "Description": "支持的类型有，0圆形Circle，1折线:Polyline，2多边形:Polygon，3圆弧:Arc"
+                               "Description": "支持的类型有，0圆形Circle，1折线:Polyline，2多边形:Polygon，3圆弧:Arc",
+                               "Deprecated": false
                                },
                                {
                                "ID": "data",
@@ -128,7 +166,8 @@
                                "Type_JavaScript": "Node",
                                "Required": 1,
                                "DefaultValue": "",
-                               "Description": "根据类型传递不同的参数；圆形:需要中心点坐标(经纬度)和半径(单位:米),{\"latitude\":\"39.965\",\"longitude\":\"116.404\",\"radius\":\"10000\"}；折线和多边形:每一个是一个经纬度点,[{\"latitude\":\"39.965\",\"longitude\":\"116.404\"},{\"latitude\":\"39.965\",\"longitude\":\"116.404\"}...]；圆弧:根据指定经纬度生成一段圆弧,指定的经纬度坐标点数组(需传入3个点),每一个是一个经纬度点[{\"latitude\":\"39.965\",\"longitude\":\"116.404\"},{\"latitude\":\"39.965\",\"longitude\":\"116.404\"}]，需要注意的是圆形的情况只有一个点，不是数组"
+                               "Description": "根据类型传递不同的参数；圆形:需要中心点坐标(经纬度)和半径(单位:米),{\"latitude\":\"39.965\",\"longitude\":\"116.404\",\"radius\":\"10000\"}；折线和多边形:每一个是一个经纬度点,[{\"latitude\":\"39.965\",\"longitude\":\"116.404\"},{\"latitude\":\"39.965\",\"longitude\":\"116.404\"}...]；圆弧:根据指定经纬度生成一段圆弧,指定的经纬度坐标点数组(需传入3个点),每一个是一个经纬度点[{\"latitude\":\"39.965\",\"longitude\":\"116.404\"},{\"latitude\":\"39.965\",\"longitude\":\"116.404\"}]，需要注意的是圆形的情况只有一个点，不是数组",
+                               "Deprecated": false
                                },
                                {
                                "ID": "id",
@@ -137,7 +176,8 @@
                                "Type_JavaScript": "String",
                                "Required": 1,
                                "DefaultValue": "",
-                               "Description": "要添加的集合图形ID"
+                               "Description": "要添加的集合图形ID",
+                               "Deprecated": false
                                },
                                {
                                "ID": "fillColor",
@@ -146,7 +186,8 @@
                                "Type_JavaScript": "String",
                                "Required": 0,
                                "DefaultValue": "00000000",
-                               "Description": "只有闭合图形才有填充颜色"
+                               "Description": "只有闭合图形才有填充颜色",
+                               "Deprecated": false
                                },
                                {
                                "ID": "strokeColor",
@@ -155,7 +196,8 @@
                                "Type_JavaScript": "String",
                                "Required": 0,
                                "DefaultValue": "000000FF",
-                               "Description": ""
+                               "Description": "",
+                               "Deprecated": false
                                },
                                {
                                "ID": "width",
@@ -164,7 +206,8 @@
                                "Type_JavaScript": "Number",
                                "Required": 0,
                                "DefaultValue": "5",
-                               "Description": ""
+                               "Description": "",
+                               "Deprecated": false
                                },
                                {
                                "ID": "isDash",
@@ -173,9 +216,11 @@
                                "Type_JavaScript": "Bool",
                                "Required": 0,
                                "DefaultValue": "false",
-                               "Description": "线条是否显示为虚线，android只有折线可以设置为虚线"
+                               "Description": "线条是否显示为虚线，android只有折线可以设置为虚线",
+                               "Deprecated": false
                                }
-                               ]
+                               ],
+                     "Deprecated": false
                      },
                      {
                      "ID": "getDistance",
@@ -192,7 +237,8 @@
                                "Type_JavaScript": "String",
                                "Required": 1,
                                "DefaultValue": "",
-                               "Description": "设置起点经纬度，如39.915174,116.403901表示(纬度,经度)"
+                               "Description": "设置起点经纬度，如39.915174,116.403901表示(纬度,经度)",
+                               "Deprecated": false
                                },
                                {
                                "ID": "endPoint",
@@ -201,9 +247,42 @@
                                "Type_JavaScript": "String",
                                "Required": 1,
                                "DefaultValue": "",
-                               "Description": "设置终点经纬度，如40.915174,117.403901表示(纬度,经度)"
+                               "Description": "设置终点经纬度，如40.915174,117.403901表示(纬度,经度)",
+                               "Deprecated": false
                                }
-                               ]
+                               ],
+                     "Deprecated": false
+                     },
+                     {
+                     "ID": "getHotCityList",
+                     "Name": "获得所有热门城市",
+                     "Description": "",
+                     "ReturnType": "Node",
+                     "ReturnType_JavaScript": "Node",
+                     "ReturnDesc": "[{'cityID':城市id,'cityName':城市名称,'size':离线包大小，单位为字节}]",
+                     "Paras": [],
+                     "Deprecated": false
+                     },
+                     {
+                     "ID": "pauseDownload",
+                     "Name": "暂停下载离线地图",
+                     "Description": "",
+                     "ReturnType": "Bool",
+                     "ReturnType_JavaScript": "Bool",
+                     "ReturnDesc": "成功返回true，失败返回false",
+                     "Paras": [
+                               {
+                               "ID": "cityID",
+                               "Name": "城市ID",
+                               "Type": "Number",
+                               "Type_JavaScript": "Number",
+                               "Required": 1,
+                               "DefaultValue": "",
+                               "Description": "",
+                               "Deprecated": false
+                               }
+                               ],
+                     "Deprecated": false
                      },
                      {
                      "ID": "removeAll",
@@ -212,7 +291,29 @@
                      "ReturnType": "",
                      "ReturnType_JavaScript": "",
                      "ReturnDesc": "",
-                     "Paras": []
+                     "Paras": [],
+                     "Deprecated": false
+                     },
+                     {
+                     "ID": "removeDownload",
+                     "Name": "移除下载离线地图",
+                     "Description": "",
+                     "ReturnType": "Bool",
+                     "ReturnType_JavaScript": "Bool",
+                     "ReturnDesc": "成功返回true，反之返回false",
+                     "Paras": [
+                               {
+                               "ID": "cityID",
+                               "Name": "城市ID",
+                               "Type": "Number",
+                               "Type_JavaScript": "Number",
+                               "Required": 1,
+                               "DefaultValue": "",
+                               "Description": "",
+                               "Deprecated": false
+                               }
+                               ],
+                     "Deprecated": false
                      },
                      {
                      "ID": "removeMarker",
@@ -229,9 +330,11 @@
                                "Type_JavaScript": "Node",
                                "Required": 1,
                                "DefaultValue": "",
-                               "Description": "要移除的标记ID数组"
+                               "Description": "要移除的标记ID数组",
+                               "Deprecated": false
                                }
-                               ]
+                               ],
+                     "Deprecated": false
                      },
                      {
                      "ID": "removeOverlay",
@@ -248,9 +351,11 @@
                                "Type_JavaScript": "Node",
                                "Required": 1,
                                "DefaultValue": "",
-                               "Description": "要移除的几何图形ID数组"
+                               "Description": "要移除的几何图形ID数组",
+                               "Deprecated": false
                                }
-                               ]
+                               ],
+                     "Deprecated": false
                      },
                      {
                      "ID": "setCenter",
@@ -267,7 +372,8 @@
                                "Type_JavaScript": "String",
                                "Required": 1,
                                "DefaultValue": "39.915174",
-                               "Description": "设置地图中心点纬度，默认是北京天安门坐标纬度"
+                               "Description": "设置地图中心点纬度，默认是北京天安门坐标纬度",
+                               "Deprecated": false
                                },
                                {
                                "ID": "longitude",
@@ -276,9 +382,32 @@
                                "Type_JavaScript": "String",
                                "Required": 1,
                                "DefaultValue": "116.403901",
-                               "Description": "设置地图中心点经度，默认是北京天安门坐标经度"
+                               "Description": "设置地图中心点经度，默认是北京天安门坐标经度",
+                               "Deprecated": false
                                }
-                               ]
+                               ],
+                     "Deprecated": false
+                     },
+                     {
+                     "ID": "startDownload",
+                     "Name": "开始下载离线地图",
+                     "Description": "",
+                     "ReturnType": "Bool",
+                     "ReturnType_JavaScript": "Bool",
+                     "ReturnDesc": "成功返回true，失败返回false",
+                     "Paras": [
+                               {
+                               "ID": "cityID",
+                               "Name": "城市ID",
+                               "Type": "Number",
+                               "Type_JavaScript": "Number",
+                               "Required": 1,
+                               "DefaultValue": "",
+                               "Description": "",
+                               "Deprecated": false
+                               }
+                               ],
+                     "Deprecated": false
                      }
                      ],
     "asyncMethodes": [
@@ -297,7 +426,8 @@
                                 "Type_JavaScript": "Number",
                                 "Required": 1,
                                 "DefaultValue": "",
-                                "Description": "搜索类型，是一个枚举值。0:城市POI检索;1:在矩形范围内POI检索;2:根据中心点、半径POI检索;"
+                                "Description": "搜索类型，是一个枚举值。0:城市POI检索;1:在矩形范围内POI检索;2:根据中心点、半径POI检索;",
+                                "Deprecated": false
                                 },
                                 {
                                 "ID": "keyword",
@@ -306,7 +436,8 @@
                                 "Type_JavaScript": "String",
                                 "Required": 1,
                                 "DefaultValue": "",
-                                "Description": "搜索的关键字"
+                                "Description": "搜索的关键字",
+                                "Deprecated": false
                                 },
                                 {
                                 "ID": "param",
@@ -315,7 +446,8 @@
                                 "Type_JavaScript": "Node",
                                 "Required": 1,
                                 "DefaultValue": "",
-                                "Description": "根据检索类型设置检索参数，当type = 0时，param为{city:''}；当type = 1时，param 为{leftBottom:'39.915174,116.403901(纬度,经度)',rightTop:'39.915174,116.403901(纬度,经度)'}表示矩形区域，左下角和右上角的经纬度坐标点；当type = 2时，param为{location:'39.915174,116.403901(纬度,经度)',radius:''}，其中location为检索的中心点经纬度，radius为周边检索半径，单位为米"
+                                "Description": "根据检索类型设置检索参数，当type = 0时，param为{city:''}；当type = 1时，param 为{leftBottom:'39.915174,116.403901(纬度,经度)',rightTop:'39.915174,116.403901(纬度,经度)'}表示矩形区域，左下角和右上角的经纬度坐标点；当type = 2时，param为{location:'39.915174,116.403901(纬度,经度)',radius:''}，其中location为检索的中心点经纬度，radius为周边检索半径，单位为米",
+                                "Deprecated": false
                                 },
                                 {
                                 "ID": "pageIndex",
@@ -324,7 +456,8 @@
                                 "Type_JavaScript": "Number",
                                 "Required": 0,
                                 "DefaultValue": "0",
-                                "Description": ""
+                                "Description": "",
+                                "Deprecated": false
                                 },
                                 {
                                 "ID": "pageSize",
@@ -333,9 +466,11 @@
                                 "Type_JavaScript": "Number",
                                 "Required": 0,
                                 "DefaultValue": "10",
-                                "Description": ""
+                                "Description": "",
+                                "Deprecated": false
                                 }
-                                ]
+                                ],
+                      "Deprecated": false
                       },
                       {
                       "ID": "routePlanSearch",
@@ -352,7 +487,8 @@
                                 "Type_JavaScript": "String",
                                 "Required": 1,
                                 "DefaultValue": "",
-                                "Description": "路线检索类型,包括Bus(公交);Ride(骑行);Walk(步行);Drive(驾车)"
+                                "Description": "路线检索类型,包括Bus(公交);Ride(骑行);Walk(步行);Drive(驾车)",
+                                "Deprecated": false
                                 },
                                 {
                                 "ID": "startCityName",
@@ -361,7 +497,8 @@
                                 "Type_JavaScript": "String",
                                 "Required": 1,
                                 "DefaultValue": "",
-                                "Description": "城市名称"
+                                "Description": "城市名称",
+                                "Deprecated": false
                                 },
                                 {
                                 "ID": "endCityName",
@@ -370,7 +507,8 @@
                                 "Type_JavaScript": "String",
                                 "Required": 1,
                                 "DefaultValue": "",
-                                "Description": "城市名称"
+                                "Description": "城市名称",
+                                "Deprecated": false
                                 },
                                 {
                                 "ID": "startCitySite",
@@ -379,7 +517,8 @@
                                 "Type_JavaScript": "String",
                                 "Required": 1,
                                 "DefaultValue": "",
-                                "Description": "所在城市的地点名称"
+                                "Description": "所在城市的地点名称",
+                                "Deprecated": false
                                 },
                                 {
                                 "ID": "endCitySite",
@@ -388,9 +527,11 @@
                                 "Type_JavaScript": "String",
                                 "Required": 1,
                                 "DefaultValue": "",
-                                "Description": "所在城市的地点名称"
+                                "Description": "所在城市的地点名称",
+                                "Deprecated": false
                                 }
-                                ]
+                                ],
+                      "Deprecated": false
                       }
                       ]
 }
