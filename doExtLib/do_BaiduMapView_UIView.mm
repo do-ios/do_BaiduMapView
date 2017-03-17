@@ -455,8 +455,8 @@
     //_invokeResult设置返回值
     if (!_offlineMap) {
         _offlineMap = [[BMKOfflineMap alloc] init];
-        _offlineMap.delegate = self;
     }
+    _offlineMap.delegate = self;
     NSArray *cities = [_offlineMap getHotCityList];
     NSMutableArray *hotCityList = [NSMutableArray array];
     for (BMKOLSearchRecord *record in cities) {
@@ -483,6 +483,7 @@
     if (!_offlineMap) {
         _offlineMap = [[BMKOfflineMap alloc] init];
     }
+    _offlineMap.delegate = nil;
     success = [_offlineMap pause:cityID];
     [_invokeResult SetResultBoolean:success];
 }
