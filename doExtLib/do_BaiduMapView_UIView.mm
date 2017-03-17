@@ -84,8 +84,6 @@
 //引用Model对象
 - (void) LoadView: (doUIModule *) _doUIModule
 {
-    _offlineMap = [[BMKOfflineMap alloc] init];
-    _offlineMap.delegate = self;
     _model = (typeof(_model)) _doUIModule;
     NSString *_BMKMapKey = [[doServiceContainer Instance].ModuleExtManage GetThirdAppKey:@"baiduMapAppKey.plist" :@"baiduMapViewAppKey" ];
     
@@ -484,8 +482,8 @@
     BOOL success = NO;
     if (!_offlineMap) {
         _offlineMap = [[BMKOfflineMap alloc] init];
-        success = [_offlineMap pause:cityID];
     }
+    success = [_offlineMap pause:cityID];
     [_invokeResult SetResultBoolean:success];
 }
 - (void)startDownload:(NSArray *)parms
@@ -499,8 +497,8 @@
     //_invokeResult设置返回值
     if (!_offlineMap) {
         _offlineMap = [[BMKOfflineMap alloc] init];
-        _offlineMap.delegate = self;
     }
+    _offlineMap.delegate = self;
     BOOL success = [_offlineMap start:cityID];
     doInvokeResult *_invokeResult = [[doInvokeResult alloc]init:_model.UniqueKey];
     [_invokeResult SetResultBoolean:success];
@@ -519,6 +517,7 @@
     if (_offlineMap) {
          success = [_offlineMap remove:cityID];
     }
+    _offlineMap.delegate = nil;
     [_invokeResult SetResultBoolean:success];
 }
 #pragma mark - 离线地图代理

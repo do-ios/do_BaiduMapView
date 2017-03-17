@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3B18F3241E791F190046FD5C /* BaiduMapAPI_Cloud.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3B99A5BB1C34C586007F145D /* BaiduMapAPI_Cloud.framework */; };
+		3B18F3251E791F190046FD5C /* BaiduMapAPI_Search.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3B99A5BC1C34C586007F145D /* BaiduMapAPI_Search.framework */; };
+		3B18F3261E791F190046FD5C /* BaiduMapAPI_Base.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3BBAE72B1C27EB3000A0AB8B /* BaiduMapAPI_Base.framework */; };
+		3B18F3271E791F190046FD5C /* BaiduMapAPI_Map.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3BBAE72C1C27EB3000A0AB8B /* BaiduMapAPI_Map.framework */; };
+		3B18F3281E791F190046FD5C /* BaiduMapAPI_Utils.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3BBAE72D1C27EB3000A0AB8B /* BaiduMapAPI_Utils.framework */; };
+		3B18F3291E791F220046FD5C /* baiduMapAppKey.plist in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3BC334CA1BF2DDB200C0B446 /* baiduMapAppKey.plist */; };
 		3B40A2441DD32E1600288CF9 /* doRouteAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B40A2431DD32E1600288CF9 /* doRouteAnnotation.m */; };
 		3B40A2471DD32F0B00288CF9 /* UIImage+doRotate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3B40A2461DD32F0B00288CF9 /* UIImage+doRotate.m */; };
 		3B40A2491DD4013800288CF9 /* do_BMKMapView.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3B40A2481DD4000C00288CF9 /* do_BMKMapView.bundle */; };
@@ -66,6 +72,12 @@
 			dstPath = "";
 			dstSubfolderSpec = 16;
 			files = (
+				3B18F3291E791F220046FD5C /* baiduMapAppKey.plist in CopyFiles */,
+				3B18F3241E791F190046FD5C /* BaiduMapAPI_Cloud.framework in CopyFiles */,
+				3B18F3251E791F190046FD5C /* BaiduMapAPI_Search.framework in CopyFiles */,
+				3B18F3261E791F190046FD5C /* BaiduMapAPI_Base.framework in CopyFiles */,
+				3B18F3271E791F190046FD5C /* BaiduMapAPI_Map.framework in CopyFiles */,
+				3B18F3281E791F190046FD5C /* BaiduMapAPI_Utils.framework in CopyFiles */,
 				3B40A2491DD4013800288CF9 /* do_BMKMapView.bundle in CopyFiles */,
 				3BC334B41BF2DAF800C0B446 /* do_BaiduMapView_UIModel.h in CopyFiles */,
 				3BC334B51BF2DAF800C0B446 /* do_BaiduMapView_UIView.h in CopyFiles */,
