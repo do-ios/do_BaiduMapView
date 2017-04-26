@@ -34,6 +34,7 @@
 #define MYBUNDLE [NSBundle bundleWithPath: MYBUNDLE_PATH]
 
 @interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate,BMKPoiSearchDelegate,BMKRouteSearchDelegate,BMKOfflineMapDelegate>
+@property (nonatomic, strong) NSMutableDictionary<NSString*, NSNumber*> *markersPopupEnableArray;
 @end
 @implementation do_BaiduMapView_UIView
 {
@@ -110,7 +111,7 @@
     _dictAnnotation = [[NSMutableDictionary alloc]init];
     _dictOverlay = [NSMutableDictionary dictionary];
     _dictImags = [[NSMutableDictionary alloc]init];
-    
+    _markersPopupEnableArray = [NSMutableDictionary dictionary];
     NSString *mapType = [(doUIModule *)_model GetProperty:@"mapType"].DefaultValue;
     
     [_model SetPropertyValue:@"mapType" :mapType];
@@ -127,6 +128,7 @@
     [self removeAll:nil];
     _dictAnnotation = nil;
     _dictImags = nil;
+    _markersPopupEnableArray = nil;
     [_mapView removeFromSuperview];
     _mapView = nil;
     if(_mapManager)
@@ -226,6 +228,8 @@
         NSString *longitude = [doJsonHelper GetOneText:parm :@"longitude" :@"116.403901"];
         NSString *imagePath = [doJsonHelper GetOneText:parm:@"url":@""];
         NSString *info = [doJsonHelper GetOneText:parm:@"info":@""];
+        BOOL popUp = [doJsonHelper GetBoolean:@"popup" :true];
+        
         CLLocationCoordinate2D coor;
         coor.latitude = [latitude floatValue];
         coor.longitude = [longitude floatValue];
@@ -240,6 +244,7 @@
         }
         [_dictAnnotation setValue:_pointAnnotation forKey:_annotationID];
         [_dictImags setValue:imagePath forKey:_annotationID];
+        [_markersPopupEnableArray setValue:[NSNumber numberWithBool:popUp] forKey:_annotationID];
         [_mapView addAnnotation:_pointAnnotation];
     }
     [_invokeResult SetResultBoolean:YES];
@@ -318,6 +323,7 @@
     [_dictAnnotation removeAllObjects];
     [_dictOverlay removeAllObjects];
     [_dictImags removeAllObjects];
+    [_markersPopupEnableArray removeAllObjects];
     [markerInfos removeAllObjects];
 }
 
@@ -337,6 +343,7 @@
             [_mapView removeAnnotation:_dictAnnotation[_pointAnnotationID]];
             [_dictAnnotation removeObjectForKey:_pointAnnotationID];
             [_dictImags removeObjectForKey:_pointAnnotationID];
+            [_markersPopupEnableArray removeObjectForKey:_pointAnnotationID];
         }
         else
         {
@@ -426,15 +433,35 @@
     NSString *endCityName = [doJsonHelper GetOneText:_dictParas :@"endCityName" :@""];
     NSString *startCitySite = [doJsonHelper GetOneText:_dictParas :@"startCitySite" :@""];
     NSString *endCitySite = [doJsonHelper GetOneText:_dictParas :@"endCitySite" :@""];
+    
+    NSArray *startPointArr = [startCitySite componentsSeparatedByString:@","];
+    NSArray *endPointArr = [endCitySite componentsSeparatedByString:@","];
+    
+    if (![self routePlanSearchTypeLegal:type]) {
+        [[doServiceContainer Instance].LogEngine WriteError:nil :@"routePlanSearchWithLocation调用传递的type参数不合法"];
+    }
+    
+    if (startPointArr.count != 2 || endPointArr.count != 2) {
+        [[doServiceContainer Instance].LogEngine WriteError:nil :@"routePlanSearchWithLocation调用传递的startPoint/endPoint参数不合法"];
+        return;
+    }
+    
     _routesearch = [[BMKRouteSearch alloc]init];
     _routesearch.delegate = self;
     //开始结束点
+    double startPLatitude = [startPointArr[0] doubleValue];
+    double startPLongitude = [startPointArr[1] doubleValue];
     BMKPlanNode* start = [[BMKPlanNode alloc]init];
     start.name = startCitySite;
     start.cityName = startCityName;
+    start.pt = CLLocationCoordinate2DMake(startPLatitude, startPLongitude);
+    
+    double endPLatitude = [endPointArr[0] doubleValue];
+    double endPLongitude = [endPointArr[1] doubleValue];
     BMKPlanNode* end = [[BMKPlanNode alloc]init];
     end.name = endCitySite;
     end.cityName = endCityName;
+    end.pt = CLLocationCoordinate2DMake(endPLatitude, endPLongitude);
     BMKBaseRoutePlanOption *option = [self routePlanFactory:type];
     option.from = start;
     option.to = end;
@@ -446,7 +473,7 @@
 
 - (void)getHotCityList:(NSArray *)parms
 {
-//    NSDictionary *_dictParas = [parms objectAtIndex:0];
+    //    NSDictionary *_dictParas = [parms objectAtIndex:0];
     //参数字典_dictParas
     id<doIScriptEngine> _scritEngineHot = [parms objectAtIndex:1];
     //自己的代码实现
@@ -474,7 +501,7 @@
 {
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     //参数字典_dictParas
-//    id<doIScriptEngine> _scritEngine = [parms objectAtIndex:1];
+    //    id<doIScriptEngine> _scritEngine = [parms objectAtIndex:1];
     //自己的代码实现
     doInvokeResult *_invokeResult = [parms objectAtIndex:2];
     int cityID = [doJsonHelper GetOneInteger:_dictParas :@"cityID" :0];
@@ -509,14 +536,14 @@
 {
     NSDictionary *_dictParas = [parms objectAtIndex:0];
     //参数字典_dictParas
-//    id<doIScriptEngine> _scritEngine = [parms objectAtIndex:1];
+    //    id<doIScriptEngine> _scritEngine = [parms objectAtIndex:1];
     //自己的代码实现
     doInvokeResult *_invokeResult = [parms objectAtIndex:2];
     int cityID = [doJsonHelper GetOneInteger: _dictParas :@"cityID" :0];
     //_invokeResult设置返回值
     BOOL success = NO;
     if (_offlineMap) {
-         success = [_offlineMap remove:cityID];
+        success = [_offlineMap remove:cityID];
     }
     _offlineMap.delegate = nil;
     [_invokeResult SetResultBoolean:success];
@@ -623,11 +650,7 @@
     if ([annotation isKindOfClass:[doRouteAnnotation class]]) {
         return [(doRouteAnnotation*)annotation getRouteAnnotationView:mapView];
     }
-    NSString *AnnotationViewID = @"AnimatedAnnotation";
-    MyAnimatedAnnotationView *_annotationView = nil;
-    if (_annotationView == nil) {
-        _annotationView = [[MyAnimatedAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:AnnotationViewID];
-    }
+    
     NSString *_pathID;
     for (NSString *_anno in _dictAnnotation.allKeys) {
         if (annotation == _dictAnnotation[_anno])
@@ -635,6 +658,14 @@
             _pathID = _anno;
             break;
         }
+    }
+    
+    NSString *AnnotationViewID = @"AnimatedAnnotation";
+    MyAnimatedAnnotationView *_annotationView = nil;
+    if (_annotationView == nil) {
+        _annotationView = [[MyAnimatedAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:AnnotationViewID];
+        _annotationView.canShowCallout = [_markersPopupEnableArray[_pathID] boolValue] ? [_markersPopupEnableArray[_pathID] boolValue]: true;
+        
     }
     
     NSString * imgPath = [doIOHelper GetLocalFileFullPath:_model.CurrentPage.CurrentApp :_dictImags[_pathID]];
@@ -688,7 +719,7 @@
 //        [_invokeResult SetResultNode:node];
 //        [_model.EventCenter FireEvent:@"touchMarker":_invokeResult];
 //    }
-//    
+//
 //}
 - (void)mapView:(BMKMapView *)mapView onClickedMapBlank:(CLLocationCoordinate2D)coordinate
 {
@@ -1003,6 +1034,14 @@
     }
 }
 #pragma mark - 私有方法
+// 路线搜索传递的type参数是否合法
+- (BOOL)routePlanSearchTypeLegal:(NSString*)type {
+    if ([type isEqualToString:@"Bus"] || [type isEqualToString:@"Ride"] || [type isEqualToString:@"Walk"] || [type isEqualToString:@"Drive"]) {
+        return true;
+    }
+    return false;
+}
+
 //添加圆形遮盖物
 - (id<BMKOverlay>) addCircleOverlay:(NSDictionary *)parma
 {
@@ -1104,18 +1143,18 @@
 - (BMKBaseRoutePlanOption *)routePlanFactory:(NSString *)type
 {
     BMKBaseRoutePlanOption *option;
-    if ([[type lowercaseString] isEqualToString:@"bus"]) {
+    if ([[type lowercaseString] isEqualToString:@"Bus"]) {
         option = [[BMKMassTransitRoutePlanOption alloc]init];
     }
-    else if([[type lowercaseString] isEqualToString:@"ride"])
+    else if([[type lowercaseString] isEqualToString:@"Ride"])
     {
         option = [[BMKRidingRoutePlanOption alloc]init];
     }
-    else if([[type lowercaseString] isEqualToString:@"walk"])
+    else if([[type lowercaseString] isEqualToString:@"Walk"])
     {
         option = [[BMKWalkingRoutePlanOption alloc]init];
     }
-    else if([[type lowercaseString] isEqualToString:@"drive"])
+    else if([[type lowercaseString] isEqualToString:@"Drive"])
     {
         option = [[BMKDrivingRoutePlanOption alloc]init];
     }
