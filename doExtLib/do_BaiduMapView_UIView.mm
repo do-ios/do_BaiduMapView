@@ -1143,18 +1143,18 @@
 - (BMKBaseRoutePlanOption *)routePlanFactory:(NSString *)type
 {
     BMKBaseRoutePlanOption *option;
-    if ([[type lowercaseString] isEqualToString:@"Bus"]) {
+    if ([[type lowercaseString] isEqualToString:@"bus"]) {
         option = [[BMKMassTransitRoutePlanOption alloc]init];
     }
-    else if([[type lowercaseString] isEqualToString:@"Ride"])
+    else if([[type lowercaseString] isEqualToString:@"ride"])
     {
         option = [[BMKRidingRoutePlanOption alloc]init];
     }
-    else if([[type lowercaseString] isEqualToString:@"Walk"])
+    else if([[type lowercaseString] isEqualToString:@"walk"])
     {
         option = [[BMKWalkingRoutePlanOption alloc]init];
     }
-    else if([[type lowercaseString] isEqualToString:@"Drive"])
+    else if([[type lowercaseString] isEqualToString:@"drive"])
     {
         option = [[BMKDrivingRoutePlanOption alloc]init];
     }
