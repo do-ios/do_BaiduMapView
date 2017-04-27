@@ -76,15 +76,10 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
             _markerTextLabel.font = _textInfoDict[@"textFont"];
             _markerTextLabel.textColor = _textInfoDict[@"textFontColor"];
             _markerTextLabel.textAlignment = NSTextAlignmentCenter;
+            
             // 对齐方式
             NSString *alignX = _textInfoDict[@"alignX"];
             NSString *alignY = _textInfoDict[@"alignY"];
-            
-            
-            NSDictionary *attributeDict = [NSDictionary dictionaryWithObjectsAndKeys:
-                                           [UIFont systemFontOfSize:_markerTextLabel.font.pointSize],NSFontAttributeName,
-                                           _markerTextLabel.textColor,NSForegroundColorAttributeName,nil];
-            CGSize fontSize = [_markerTextLabel.text boundingRectWithSize:CGSizeMake(MAXFLOAT, self.bounds.size.height) options:NSStringDrawingUsesFontLeading attributes:attributeDict context:nil].size;
             
             MarkerTextAlignX markerTextAlignX = MarkerTextAlignXCenter;
             if ([alignX isEqualToString:@"left"]) {
@@ -102,9 +97,9 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
             }else if ([alignY isEqualToString:@"center"]) {
                 markerTextAlignY = MarkerTextAlignYCenter;
             }
-            
+            [_markerTextLabel sizeToFit];
+            CGSize fontSize = _markerTextLabel.frame.size;
             _markerTextLabel.frame = [self markerTextFrameWithAlignX:markerTextAlignX alignY:markerTextAlignY fontSize:fontSize];
-            
             return _markerTextLabel;
             
         }else {

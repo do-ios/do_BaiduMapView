@@ -231,7 +231,7 @@
         NSString *longitude = [doJsonHelper GetOneText:parm :@"longitude" :@"116.403901"];
         NSString *imagePath = [doJsonHelper GetOneText:parm:@"url":@""];
         NSString *info = [doJsonHelper GetOneText:parm:@"info":@""];
-        BOOL popUp = [doJsonHelper GetBoolean:@"popup" :true];
+        BOOL popUp = [doJsonHelper GetOneBoolean:parm :@"popup" :true];
         id tempResult = [doJsonHelper GetOneNode:parm :@"textMarker"];
         NSMutableDictionary *textMarkerDict = [NSMutableDictionary dictionary];
         if ( tempResult != nil) {
@@ -707,7 +707,11 @@
     MyAnimatedAnnotationView *_annotationView = nil;
     if (_annotationView == nil) {
         _annotationView = [[MyAnimatedAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:AnnotationViewID textInfoDict:_textMarkersArray[_pathID]];
-        _annotationView.canShowCallout = [_markersPopupEnableArray[_pathID] boolValue] ? [_markersPopupEnableArray[_pathID] boolValue]: true;
+        BOOL showCallOut = true;
+        if (_markersPopupEnableArray[_pathID] != nil) {
+            showCallOut = [_markersPopupEnableArray[_pathID] integerValue] == 1 ? true : false;
+        }
+        _annotationView.canShowCallout = showCallOut;
         
     }
     
