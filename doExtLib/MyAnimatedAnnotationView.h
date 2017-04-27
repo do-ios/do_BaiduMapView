@@ -10,5 +10,6 @@
 @property (nonatomic, strong) NSString *viewID;
 @property (nonatomic, strong) NSMutableArray *annotationImages;
 @property (nonatomic, strong) UIImageView *annotationImageView;
+- (id)initWithAnnotation:(id<BMKAnnotation>)annotation reuseIdentifier:(NSString *)reuseIdentifier textInfoDict:(NSDictionary *)textInfoDict;
 
 @end

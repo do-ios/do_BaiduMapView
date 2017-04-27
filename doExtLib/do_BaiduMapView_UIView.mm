@@ -35,6 +35,7 @@
 
 @interface do_BaiduMapView_UIView() <BMKMapViewDelegate, BMKGeneralDelegate,BMKPoiSearchDelegate,BMKRouteSearchDelegate,BMKOfflineMapDelegate>
 @property (nonatomic, strong) NSMutableDictionary<NSString*, NSNumber*> *markersPopupEnableArray;
+@property (nonatomic, strong) NSMutableDictionary<NSString*, NSDictionary*> *textMarkersArray;
 @end
 @implementation do_BaiduMapView_UIView
 {
@@ -112,6 +113,7 @@
     _dictOverlay = [NSMutableDictionary dictionary];
     _dictImags = [[NSMutableDictionary alloc]init];
     _markersPopupEnableArray = [NSMutableDictionary dictionary];
+    _textMarkersArray = [NSMutableDictionary dictionary];
     NSString *mapType = [(doUIModule *)_model GetProperty:@"mapType"].DefaultValue;
     
     [_model SetPropertyValue:@"mapType" :mapType];
@@ -129,6 +131,7 @@
     _dictAnnotation = nil;
     _dictImags = nil;
     _markersPopupEnableArray = nil;
+    _textMarkersArray = nil;
     [_mapView removeFromSuperview];
     _mapView = nil;
     if(_mapManager)
@@ -229,6 +232,42 @@
         NSString *imagePath = [doJsonHelper GetOneText:parm:@"url":@""];
         NSString *info = [doJsonHelper GetOneText:parm:@"info":@""];
         BOOL popUp = [doJsonHelper GetBoolean:@"popup" :true];
+        id tempResult = [doJsonHelper GetOneNode:parm :@"textMarker"];
+        NSMutableDictionary *textMarkerDict = [NSMutableDictionary dictionary];
+        if ( tempResult != nil) {
+            if ([tempResult isKindOfClass:[NSDictionary class]]) {
+                NSDictionary *textMarker = (NSDictionary*)tempResult;
+                NSString *textMarkerText = [doJsonHelper GetOneText:textMarker :@"text" :@""];
+                NSString *fontColor = [doJsonHelper GetOneText:textMarker :@"fontColor" :@"000000FF"];
+                NSString *fontStyle = [doJsonHelper GetOneText:textMarker :@"fontStyle" :@"normal"]; // normal / bold
+                NSInteger fontSize = [doJsonHelper GetOneInteger:textMarker :@"fontSize" :17];
+                NSString *alignX = [doJsonHelper GetOneText:textMarker :@"alignX" :@"center"]; // left(左对齐) right(右对齐) center(水平居中对齐)
+                NSString *alignY = [doJsonHelper GetOneText:textMarker :@"alignY" :@"center"]; // top(上对齐) bottom(下对齐)  center(垂直居中对齐)
+                
+                // 字体
+                UIFont *textFont;
+                if ([fontStyle isEqualToString:@"normal"]) {
+                    textFont = [UIFont systemFontOfSize:fontSize];
+                    
+                }else if ([fontStyle isEqualToString:@"bold"]) {
+                    textFont = [UIFont boldSystemFontOfSize:fontSize];
+                }else {
+                    textFont = [UIFont systemFontOfSize:fontSize];
+                }
+                
+                // 字体颜色
+                UIColor *textFontColor = [doUIModuleHelper GetColorFromString:fontColor :[UIColor blackColor]];
+                
+                [textMarkerDict setValue:textMarkerText forKey:@"text"];
+                [textMarkerDict setValue:textFont forKey:@"textFont"];
+                [textMarkerDict setValue:textFontColor forKey:@"textFontColor"];
+                [textMarkerDict setValue:alignX forKey:@"alignX"];
+                [textMarkerDict setValue:alignY forKey:@"alignY"];
+                
+            }else {
+                [[doServiceContainer Instance].LogEngine WriteError:nil :@"textMarker参数格式错误,textMarker参数为字典"];
+            }
+        }
         
         CLLocationCoordinate2D coor;
         coor.latitude = [latitude floatValue];
@@ -245,8 +284,10 @@
         [_dictAnnotation setValue:_pointAnnotation forKey:_annotationID];
         [_dictImags setValue:imagePath forKey:_annotationID];
         [_markersPopupEnableArray setValue:[NSNumber numberWithBool:popUp] forKey:_annotationID];
+        [_textMarkersArray setValue:textMarkerDict forKey:_annotationID];
         [_mapView addAnnotation:_pointAnnotation];
     }
+    
     [_invokeResult SetResultBoolean:YES];
 }
 - (BOOL)isExitKey:(NSString *)key withArray:(NSArray *)keys
@@ -324,6 +365,7 @@
     [_dictOverlay removeAllObjects];
     [_dictImags removeAllObjects];
     [_markersPopupEnableArray removeAllObjects];
+    [_textMarkersArray removeAllObjects];
     [markerInfos removeAllObjects];
 }
 
@@ -344,6 +386,7 @@
             [_dictAnnotation removeObjectForKey:_pointAnnotationID];
             [_dictImags removeObjectForKey:_pointAnnotationID];
             [_markersPopupEnableArray removeObjectForKey:_pointAnnotationID];
+            [_textMarkersArray removeObjectForKey:_pointAnnotationID];
         }
         else
         {
@@ -663,7 +706,7 @@
     NSString *AnnotationViewID = @"AnimatedAnnotation";
     MyAnimatedAnnotationView *_annotationView = nil;
     if (_annotationView == nil) {
-        _annotationView = [[MyAnimatedAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:AnnotationViewID];
+        _annotationView = [[MyAnimatedAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:AnnotationViewID textInfoDict:_textMarkersArray[_pathID]];
         _annotationView.canShowCallout = [_markersPopupEnableArray[_pathID] boolValue] ? [_markersPopupEnableArray[_pathID] boolValue]: true;
         
     }
