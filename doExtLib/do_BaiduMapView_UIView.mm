@@ -28,6 +28,7 @@
 #import "doILogEngine.h"
 #import "doRouteAnnotation.h"
 #import "UIImage+doRotate.h"
+#import "doTextHelper.h"
 
 #define MYBUNDLE_NAME @ "mapapi.bundle"
 #define MYBUNDLE_PATH [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent: MYBUNDLE_NAME]
@@ -245,14 +246,15 @@
                 NSString *alignY = [doJsonHelper GetOneText:textMarker :@"alignY" :@"center"]; // top(上对齐) bottom(下对齐)  center(垂直居中对齐)
                 
                 // 字体
+                int realFontSize = [doUIModuleHelper GetDeviceFontSize:(int)fontSize :_model.XZoom :_model.YZoom];
                 UIFont *textFont;
                 if ([fontStyle isEqualToString:@"normal"]) {
-                    textFont = [UIFont systemFontOfSize:fontSize];
+                    textFont = [UIFont systemFontOfSize:realFontSize];
                     
                 }else if ([fontStyle isEqualToString:@"bold"]) {
-                    textFont = [UIFont boldSystemFontOfSize:fontSize];
+                    textFont = [UIFont boldSystemFontOfSize:realFontSize];
                 }else {
-                    textFont = [UIFont systemFontOfSize:fontSize];
+                    textFont = [UIFont systemFontOfSize:realFontSize];
                 }
                 
                 // 字体颜色
