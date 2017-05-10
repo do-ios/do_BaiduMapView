@@ -32,19 +32,8 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
 - (id)initWithAnnotation:(id<BMKAnnotation>)annotation reuseIdentifier:(NSString *)reuseIdentifier textInfoDict:(NSDictionary *)textInfoDict {
     self = [super initWithAnnotation:annotation reuseIdentifier:reuseIdentifier];
     if (self) {
-        //        [self setBounds:CGRectMake(0.f, 0.f, 30.f, 30.f)];
-        [self setBounds:CGRectMake(0.f, 0.f, 32.f, 32.f)];
-        
         [self setBackgroundColor:[UIColor clearColor]];
-        
-        _annotationImageView = [[UIImageView alloc] initWithFrame:self.bounds];
-        _annotationImageView.contentMode = UIViewContentModeScaleAspectFill;
-        _annotationImageView.clipsToBounds = true;
         _textInfoDict = textInfoDict;
-        
-        [self addSubview:_annotationImageView];
-        [self addSubview:self.markerTextLabel];
-        self.layer.masksToBounds = false;
     }
     return self;
 }
@@ -66,6 +55,23 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
     _annotationImageView.animationRepeatCount = 0;
     [_annotationImageView startAnimating];
 }
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    if (_annotationImageView) {
+        [_annotationImageView removeFromSuperview];
+        _annotationImageView = nil;
+    }
+    if (_markerTextLabel) {
+        [_annotationImageView removeFromSuperview];
+        _markerTextLabel = nil;
+    }
+    _annotationImageView = [[UIImageView alloc] initWithFrame:self.bounds];
+    _annotationImageView.contentMode = UIViewContentModeCenter;
+    [self addSubview:_annotationImageView];
+    [self addSubview:self.markerTextLabel];
+}
+
 
 #pragma  mark -lazy
 - (UILabel *)markerTextLabel {
@@ -99,7 +105,7 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
             }
             [_markerTextLabel sizeToFit];
             CGSize fontSize = _markerTextLabel.frame.size;
-            _markerTextLabel.frame = [self markerTextFrameWithAlignX:markerTextAlignX alignY:markerTextAlignY fontSize:fontSize];
+            _markerTextLabel.frame = [self markerTextFrameWithAlignX:markerTextAlignX alignY:markerTextAlignY fontSize:fontSize];            
             return _markerTextLabel;
             
         }else {
@@ -109,6 +115,7 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
     return _markerTextLabel;
 }
 
+// 以图片下边沿中点为参考点添加的textMarker
 - (CGRect)markerTextFrameWithAlignX:(MarkerTextAlignX)alignX alignY:(MarkerTextAlignY)alignY fontSize:(CGSize)fontSize {
     CGFloat x = 0.0;
     CGFloat y = 0.0;
@@ -121,18 +128,18 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
         case MarkerTextAlignXLeft:{
             switch (alignY) {
                 case MarkerTextAlignYTop: { // 左对齐 上对齐
-                    x = self.bounds.size.width;
-                    y = 0;
+                    x = self.bounds.size.width / 2.0;
+                    y = self.bounds.size.height;
                     break;
                 }
                 case MarkerTextAlignYBottom: { // 左对齐 下对齐
-                    x = self.bounds.size.width;
+                    x = self.bounds.size.width / 2.0;
                     y = self.bounds.size.height - height;
                     break;
                 }
                 case MarkerTextAlignYCenter: { // 左对齐 垂直居中对齐
-                    x = self.bounds.size.width;
-                    y = (self.bounds.size.height - height) / 2.0;
+                    x = self.bounds.size.width / 2.0;
+                    y = self.bounds.size.height - height / 2.0;
                     break;
                 }
                 default:
@@ -144,19 +151,19 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
         case MarkerTextAlignXRight:{
             switch (alignY) {
                 case MarkerTextAlignYTop: { // 右对齐  上对齐
-                    x = - self.bounds.size.width;
-                    y = 0;
+                    x = self.bounds.size.width / 2.0 - width;
+                    y = self.bounds.size.height;
                     break;
                 }
                 case MarkerTextAlignYBottom: { // 右对齐 下对齐
-                    x = - self.bounds.size.width;
+                    x = self.bounds.size.width / 2.0 - width;
                     y = self.bounds.size.height - height;
                     
                     break;
                 }
                 case MarkerTextAlignYCenter: { // 右对齐 垂直居中对齐
-                    x = - self.bounds.size.width;
-                    y = (self.bounds.size.height - height) / 2.0;
+                    x = self.bounds.size.width / 2.0 - width;
+                    y = self.bounds.size.height - height / 2.0;
                     break;
                 }
                 default:
@@ -169,18 +176,17 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
             switch (alignY) {
                 case MarkerTextAlignYTop: { // 水平居中对齐 上对齐
                     x = (self.bounds.size.width - width) / 2;
-                    y = 0;
+                    y = self.bounds.size.height;
                     break;
                 }
                 case MarkerTextAlignYBottom: { // 水平居中对齐  下对齐
                     x = (self.bounds.size.width - width) / 2;
                     y = self.bounds.size.height - height;
-                    
                     break;
                 }
                 case MarkerTextAlignYCenter: { // 水平居中对齐 垂直居中对齐
                     x = (self.bounds.size.width - width) / 2;
-                    y = (self.bounds.size.height - height) / 2.0;
+                    y = self.bounds.size.height - height / 2;
                     
                     break;
                 }
