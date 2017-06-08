@@ -72,7 +72,6 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
     [self addSubview:self.markerTextLabel];
 }
 
-
 #pragma  mark -lazy
 - (UILabel *)markerTextLabel {
     if (_markerTextLabel == nil) {
@@ -81,6 +80,9 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
             _markerTextLabel.text = _textInfoDict[@"text"];
             _markerTextLabel.font = _textInfoDict[@"textFont"];
             _markerTextLabel.textColor = _textInfoDict[@"textFontColor"];
+            _markerTextLabel.backgroundColor = _textInfoDict[@"bgColor"];
+            _markerTextLabel.layer.cornerRadius = ((NSNumber*)_textInfoDict[@"radius"]).floatValue;
+            _markerTextLabel.layer.masksToBounds = true;
             _markerTextLabel.textAlignment = NSTextAlignmentCenter;
             
             // 对齐方式
@@ -103,9 +105,10 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
             }else if ([alignY isEqualToString:@"center"]) {
                 markerTextAlignY = MarkerTextAlignYCenter;
             }
+            
             [_markerTextLabel sizeToFit];
             CGSize fontSize = _markerTextLabel.frame.size;
-            _markerTextLabel.frame = [self markerTextFrameWithAlignX:markerTextAlignX alignY:markerTextAlignY fontSize:fontSize];            
+            _markerTextLabel.frame = [self markerTextFrameWithAlignX:markerTextAlignX alignY:markerTextAlignY fontSize:fontSize];
             return _markerTextLabel;
             
         }else {

@@ -244,9 +244,14 @@
                 NSInteger fontSize = [doJsonHelper GetOneInteger:textMarker :@"fontSize" :17];
                 NSString *alignX = [doJsonHelper GetOneText:textMarker :@"alignX" :@"center"]; // left(左对齐) right(右对齐) center(水平居中对齐)
                 NSString *alignY = [doJsonHelper GetOneText:textMarker :@"alignY" :@"center"]; // top(上对齐) bottom(下对齐)  center(垂直居中对齐)
+                NSString *textMarkerBgColorStr = [doJsonHelper GetOneText:textMarker :@"bgColor" :@"FFFFFF00"]; // 背景色默认透明
+                NSString *textMarkerBgRadiusStr = [doJsonHelper GetOneText:textMarker :@"radius" :@"0"]; // 背景borderRadius
                 
+                UIColor *textMarkerBgColor = [doUIModuleHelper GetColorFromString:textMarkerBgColorStr :[UIColor blackColor]];
+                NSNumber *textMarkerBgRadius = [NSNumber numberWithInteger:[textMarkerBgRadiusStr integerValue]];
                 // 字体
                 int realFontSize = [doUIModuleHelper GetDeviceFontSize:(int)fontSize :_model.XZoom :_model.YZoom];
+                
                 UIFont *textFont;
                 if ([fontStyle isEqualToString:@"normal"]) {
                     textFont = [UIFont systemFontOfSize:realFontSize];
@@ -260,11 +265,15 @@
                 // 字体颜色
                 UIColor *textFontColor = [doUIModuleHelper GetColorFromString:fontColor :[UIColor blackColor]];
                 
+                
                 [textMarkerDict setValue:textMarkerText forKey:@"text"];
                 [textMarkerDict setValue:textFont forKey:@"textFont"];
                 [textMarkerDict setValue:textFontColor forKey:@"textFontColor"];
                 [textMarkerDict setValue:alignX forKey:@"alignX"];
                 [textMarkerDict setValue:alignY forKey:@"alignY"];
+                [textMarkerDict setValue:textMarkerBgColor forKey:@"bgColor"];
+                [textMarkerDict setValue:textMarkerBgRadius forKey:@"radius"];
+                
                 
             }else {
                 [[doServiceContainer Instance].LogEngine WriteError:nil :@"textMarker参数格式错误,textMarker参数为字典"];
