@@ -81,7 +81,6 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
             _markerTextLabel.font = _textInfoDict[@"textFont"];
             _markerTextLabel.textColor = _textInfoDict[@"textFontColor"];
             _markerTextLabel.backgroundColor = _textInfoDict[@"bgColor"];
-            _markerTextLabel.layer.cornerRadius = ((NSNumber*)_textInfoDict[@"radius"]).floatValue;
             _markerTextLabel.layer.masksToBounds = true;
             _markerTextLabel.textAlignment = NSTextAlignmentCenter;
             
@@ -109,6 +108,11 @@ typedef NS_ENUM(NSInteger, MarkerTextAlignY) {
             [_markerTextLabel sizeToFit];
             CGSize fontSize = _markerTextLabel.frame.size;
             _markerTextLabel.frame = [self markerTextFrameWithAlignX:markerTextAlignX alignY:markerTextAlignY fontSize:fontSize];
+            float textHeight = _markerTextLabel.frame.size.height;
+            float textWidth = _markerTextLabel.frame.size.width;
+            float radius = ((NSNumber*)_textInfoDict[@"radius"]).floatValue;
+            radius = textHeight < textWidth ? (radius > textHeight/2 ? textHeight/2 : radius) : (radius > textWidth/2 ? textWidth/2 :radius);
+            _markerTextLabel.layer.cornerRadius = radius;
             return _markerTextLabel;
             
         }else {
