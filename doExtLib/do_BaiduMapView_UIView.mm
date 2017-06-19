@@ -247,7 +247,7 @@
                 NSString *textMarkerBgColorStr = [doJsonHelper GetOneText:textMarker :@"bgColor" :@"FFFFFF00"]; // 背景色默认透明
                 NSString *textMarkerBgRadiusStr = [doJsonHelper GetOneText:textMarker :@"radius" :@"0"]; // 背景borderRadius
                 
-                UIColor *textMarkerBgColor = [doUIModuleHelper GetColorFromString:textMarkerBgColorStr :[UIColor blackColor]];
+                UIColor *textMarkerBgColor = [doUIModuleHelper GetColorFromString:textMarkerBgColorStr :[UIColor clearColor]];
                 NSNumber *textMarkerBgRadius = [NSNumber numberWithInteger:[textMarkerBgRadiusStr integerValue]];
                 // 字体
                 int realFontSize = [doUIModuleHelper GetDeviceFontSize:(int)fontSize :_model.XZoom :_model.YZoom];
